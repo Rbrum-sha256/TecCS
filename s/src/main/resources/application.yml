@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/TecCS
+    username: postgres
+    password: root 
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+app:
+  jwt:
+    secret: ChangeThisJWTSecretToAStrongOne
+    expiration-ms: 3600000 # 1 hour
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework: INFO
