@@ -872,9 +872,9 @@ FUNCTION Fc-Atualizar RETURNS LOGICAL
     oJsonObj:Add("experience", input frame frm-u f-exp).
     oJsonObj:Add("education", input frame frm-u f-Form).
 
-  
     /* Faz a requisicao utilizando POST */
-    oReq  = RequestBuilder:Post(oUri, oJsonObj)
+    oReq  = RequestBuilder:Patch(oUri, oJsonObj)
+            :AddHeader("Authorization", "Bearer " + token)
             :AcceptJson()
             :Request.
     oResp = oClient:Execute(oReq).
