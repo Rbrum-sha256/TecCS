@@ -51,13 +51,7 @@ CREATE WIDGET-POOL.
 /* ***************************  Definitions  ************************** */
 
 /* Parameters Definitions ---                                           */
-def temp-table tt-posts
-    field usrId     as char format "x(12)"
-    field id        as char format "x(12)" 
-    field postTitle as char format "x(50)"
-    field postBody  as char format "x(75)"
-    field postTumb  as char format "x(75)".
-    
+ DEFINE STREAM sJson.    
 def temp-table ttCli
     field name       as char
     field username   as char
@@ -85,9 +79,10 @@ DEFINE VARIABLE mensagem    AS CHARACTER NO-UNDO.
 DEFINE VARIABLE codigo      AS CHARACTER NO-UNDO.
 DEFINE VARIABLE detalhes    AS CHARACTER NO-UNDO.
       
-def var i              as int           no-undo.
-DEFINE VARIABLE op-CRUD AS integer NO-UNDO.
-DEFINE VARIABLE formatado AS CHARACTER NO-UNDO initial "@Email.com".
+DEFINE VARIABLE i           AS INTEGER NO-UNDO.
+DEFINE VARIABLE op-CRUD     AS integer NO-UNDO.
+DEFINE VARIABLE formatado   AS CHARACTER NO-UNDO initial "@Email.com".
+DEFINE VARIABLE log         AS LOGICAL NO-UNDO initial false.
 
 DEFINE VARIABLE metodo  AS CHARACTER NO-UNDO initial "HTTP".
 DEFINE VARIABLE host    AS CHARACTER NO-UNDO initial "localhost".
@@ -104,7 +99,7 @@ DEFINE VARIABLE porta   AS CHARACTER NO-UNDO initial "8080".
 &Scoped-define PROCEDURE-TYPE Window
 &Scoped-define DB-AWARE no
 
-/* Name of first Frame and/or Browse and/or first Query                 */
+/* Name of designated FRAME-NAME and/or first browse and/or first query */
 &Scoped-define FRAME-NAME frm-home
 
 /* Standard List Definitions                                            */
@@ -179,18 +174,12 @@ FUNCTION Fc-Logout RETURNS LOGICAL
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
-
-
-
-
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Token Win-Client
-FUNCTION Fc-Token RETURNS LOGICAL 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Token Win-Client 
+FUNCTION Fc-Token RETURNS LOGICAL
   (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
-
-
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Trata Win-Client 
 FUNCTION Fc-Trata RETURNS LOGICAL
@@ -327,28 +316,9 @@ DEFINE VARIABLE f-Unome AS CHARACTER FORMAT "X(256)":U
 
 /* ************************  Frame Definitions  *********************** */
 
-DEFINE FRAME frm-U
-     bt-R AT ROW 1.24 COL 30 WIDGET-ID 30
-     bt-U AT ROW 1.24 COL 38.6 WIDGET-ID 2
-     bt-D AT ROW 1.24 COL 46.8 WIDGET-ID 28
-     f-Unome AT ROW 3.38 COL 22.8 COLON-ALIGNED WIDGET-ID 6
-     f-nome AT ROW 4.48 COL 20 COLON-ALIGNED WIDGET-ID 4
-     f-senha AT ROW 5.52 COL 20 COLON-ALIGNED WIDGET-ID 8
-     f-senha-2 AT ROW 6.71 COL 20 COLON-ALIGNED WIDGET-ID 18
-     f-email AT ROW 8.62 COL 20 COLON-ALIGNED WIDGET-ID 10
-     f-telefone AT ROW 9.81 COL 20 COLON-ALIGNED WIDGET-ID 12
-     f-Form AT ROW 11.57 COL 20 COLON-ALIGNED WIDGET-ID 14
-     f-exp AT ROW 12.76 COL 20 COLON-ALIGNED WIDGET-ID 16
-    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 1
-         SIZE 104 BY 17.1
-         FONT 3
-         TITLE "" WIDGET-ID 300.
-
 DEFINE FRAME frm-rodape
-     fi-host AT ROW 1.71 COL 7.4 COLON-ALIGNED WIDGET-ID 2
-     fi-port AT ROW 2.81 COL 7.4 COLON-ALIGNED WIDGET-ID 4
+     fi-host AT ROW 1.71 COL 9.8 COLON-ALIGNED WIDGET-ID 2
+     fi-port AT ROW 2.81 COL 9.8 COLON-ALIGNED WIDGET-ID 4
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 18.14
@@ -362,8 +332,18 @@ DEFINE FRAME frm-home
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 1
-         SIZE 104 BY 17.14
+         SIZE 103.6 BY 17.14
          FONT 3 WIDGET-ID 400.
+
+DEFINE FRAME frm-C
+     f-host AT ROW 5.19 COL 43.8 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+     f-port AT ROW 6.62 COL 43.8 COLON-ALIGNED NO-LABEL WIDGET-ID 6
+     bt-con AT ROW 8.05 COL 53.4 WIDGET-ID 8
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+         SIDE-LABELS NO-UNDERLINE THREE-D 
+         AT COLUMN 1 ROW 1
+         SIZE 103 BY 15.95
+         FONT 3 WIDGET-ID 600.
 
 DEFINE FRAME frm-L
      f-UnomeL AT ROW 6 COL 31.8 NO-LABEL WIDGET-ID 10
@@ -372,19 +352,28 @@ DEFINE FRAME frm-L
      bt-VC AT ROW 9.1 COL 55.8 WIDGET-ID 22
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 1
-         SIZE 103.6 BY 16
+         AT COLUMN 2 ROW 1
+         SIZE 102 BY 16
          FONT 3 WIDGET-ID 500.
 
-DEFINE FRAME frm-C
-     f-host AT ROW 5.29 COL 34.2 COLON-ALIGNED NO-LABEL WIDGET-ID 4
-     f-port AT ROW 6.71 COL 34.2 COLON-ALIGNED NO-LABEL WIDGET-ID 6
-     bt-con AT ROW 8.14 COL 43.8 WIDGET-ID 8
+DEFINE FRAME frm-U
+     bt-R AT ROW 1.24 COL 69 WIDGET-ID 30
+     bt-U AT ROW 1.24 COL 77.6 WIDGET-ID 2
+     bt-D AT ROW 1.24 COL 86.2 WIDGET-ID 28
+     f-Unome AT ROW 3.71 COL 31 COLON-ALIGNED WIDGET-ID 6
+     f-nome AT ROW 4.81 COL 31 COLON-ALIGNED WIDGET-ID 4
+     f-senha AT ROW 5.86 COL 31 COLON-ALIGNED WIDGET-ID 8
+     f-senha-2 AT ROW 7.05 COL 31 COLON-ALIGNED WIDGET-ID 18
+     f-email AT ROW 8.95 COL 31 COLON-ALIGNED WIDGET-ID 10
+     f-telefone AT ROW 10.14 COL 31 COLON-ALIGNED WIDGET-ID 12
+     f-Form AT ROW 11.91 COL 31 COLON-ALIGNED WIDGET-ID 14
+     f-exp AT ROW 13.1 COL 31 COLON-ALIGNED WIDGET-ID 16
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 1
-         SIZE 103.6 BY 15.95
-         FONT 3 WIDGET-ID 600.
+         SIZE 103.8 BY 17.1
+         FONT 3
+         TITLE "" WIDGET-ID 300.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -404,11 +393,11 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW Win-Client ASSIGN
          HIDDEN             = YES
          TITLE              = "Client"
-         HEIGHT             = 20.24
-         WIDTH              = 104
-         MAX-HEIGHT         = 20.62
+         HEIGHT             = 20.29
+         WIDTH              = 103.8
+         MAX-HEIGHT         = 22.33
          MAX-WIDTH          = 190.6
-         VIRTUAL-HEIGHT     = 20.62
+         VIRTUAL-HEIGHT     = 22.33
          VIRTUAL-WIDTH      = 190.6
          RESIZE             = yes
          SCROLL-BARS        = no
@@ -440,13 +429,7 @@ ASSIGN FRAME frm-C:FRAME = FRAME frm-home:HANDLE
 /* SETTINGS FOR FRAME frm-C
                                                                         */
 /* SETTINGS FOR FRAME frm-home
-                                                                        */
-
-DEFINE VARIABLE XXTABVALXX AS LOGICAL NO-UNDO.
-
-ASSIGN XXTABVALXX = FRAME frm-C:MOVE-BEFORE-TAB-ITEM (FRAME frm-L:HANDLE)
-/* END-ASSIGN-TABS */.
-
+   FRAME-NAME                                                           */
 /* SETTINGS FOR FRAME frm-L
                                                                         */
 /* SETTINGS FOR FILL-IN f-UnomeL IN FRAME frm-L
@@ -731,17 +714,17 @@ PROCEDURE enable_UI :
   ENABLE RECT-1 RECT-2 RECT-3 
       WITH FRAME frm-home IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-home}
-  DISPLAY f-UnomeL f-senhaL 
-      WITH FRAME frm-L IN WINDOW Win-Client.
-  ENABLE f-UnomeL f-senhaL bt-L bt-VC 
-      WITH FRAME frm-L IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-L}
   DISPLAY f-Unome f-nome f-senha f-senha-2 f-email f-telefone f-Form f-exp 
       WITH FRAME frm-U IN WINDOW Win-Client.
   ENABLE bt-R bt-U bt-D f-Unome f-nome f-senha f-senha-2 f-email f-telefone 
          f-Form f-exp 
       WITH FRAME frm-U IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-U}
+  DISPLAY f-UnomeL f-senhaL 
+      WITH FRAME frm-L IN WINDOW Win-Client.
+  ENABLE f-UnomeL f-senhaL bt-L bt-VC 
+      WITH FRAME frm-L IN WINDOW Win-Client.
+  {&OPEN-BROWSERS-IN-QUERY-frm-L}
   DISPLAY fi-host fi-port 
       WITH FRAME frm-rodape IN WINDOW Win-Client.
   ENABLE fi-host fi-port 
@@ -917,8 +900,7 @@ FUNCTION Fc-Cadastrar RETURNS LOGICAL
     Fc-Token().
        assign 
         oClient   = ClientBuilder:Build():Client   
-        oUri      = new URI("http", "meu-dominio.free.beeceptor.com")    
-        //oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
         oUri:Path = "/users".  
         
     /* Cria objeto Json e popula ele */
@@ -937,8 +919,7 @@ FUNCTION Fc-Cadastrar RETURNS LOGICAL
             :AcceptJson()
             :Request.
     oResp = oClient:Execute(oReq).
-    MESSAGE oresp:ContentLength
-    VIEW-AS ALERT-BOX.
+  
 
     if type-of(oResp:Entity, JsonObject) then 
     do:
@@ -947,15 +928,11 @@ FUNCTION Fc-Cadastrar RETURNS LOGICAL
         oJsonArray = oJsonRespArray.        
 
         /* Mostra o total de registros retornados */
-        message "tamanho json: "oJsonArray:length
-        view-as alert-box.
         assign 
             mensagem    = oJsonRespObj:GetCharacter("message") 
             codigo      = oJsonRespObj:GetCharacter("code") 
             detalhes    = oJsonRespObj:GetCharacter("detail")  
-            .   
-            MESSAGE mensagem
-            VIEW-AS ALERT-BOX.              
+            .               
     end. 
     CATCH e AS Progress.Lang.Error:
         MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
@@ -1011,9 +988,40 @@ FUNCTION Fc-Ler RETURNS LOGICAL
  Notes:
 ------------------------------------------------------------------------------*/
         Fc-Token().
-        DEFINE VARIABLE result AS LOGICAL NO-UNDO.
+    ASSIGN 
+        oClient = ClientBuilder:Build():Client
+        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
+        oUri:Path = "/users/".
 
-        RETURN result.
+    oReq = RequestBuilder:get(oUri)
+              :AddHeader("Authorization", "Bearer " + token)
+              :AcceptJson()
+              :Request.
+
+    oResp = oClient:Execute(oReq).
+
+    if type-of(oResp:Entity, JsonObject) then 
+    do:
+        
+        oJsonRespObj = cast(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespArray.        
+
+        CREATE ttcli.
+        assign 
+            ttcli.name = oJsonRespObj:GetCharacter("name")
+            ttcli.username = oJsonRespObj:GetCharacter("username")
+            ttcli.email = oJsonRespObj:GetCharacter("email")
+            ttcli.password = oJsonRespObj:GetCharacter("password")
+            ttcli.phone = oJsonRespObj:GetCharacter("phone")
+            ttcli.experience = oJsonRespObj:GetCharacter("experience")
+            ttcli.education = oJsonRespObj:GetCharacter("education")
+           
+            .               
+    end.
+    ELSE DO:
+        MESSAGE "Falha ao ler cliente. Status:" oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
+        RETURN FALSE.
+    END.
 
 END FUNCTION.
 
@@ -1030,9 +1038,7 @@ FUNCTION Fc-Login RETURNS LOGICAL
     Fc-Token().
      assign 
         oClient   = ClientBuilder:Build():Client       
-        oUri      = new URI("http", "meu-dominio.free.beeceptor.com")    
-        
-        //oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
         oUri:Path = "/login".  
         
     /* Cria objeto Json e popula ele */
@@ -1113,27 +1119,67 @@ END FUNCTION.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
-
-
-
-
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Token Win-Client
-FUNCTION Fc-Token RETURNS LOGICAL 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Token Win-Client 
+FUNCTION Fc-Token RETURNS LOGICAL
   (  ):
 /*------------------------------------------------------------------------------
  Purpose:
  Notes:
 ------------------------------------------------------------------------------*/
-        DEFINE VARIABLE result AS LOGICAL NO-UNDO.
-
-        RETURN result.
-
-END FUNCTION.
+    DEFINE VARIABLE iSep1     AS INTEGER    NO-UNDO.
+    DEFINE VARIABLE iSep2     AS INTEGER    NO-UNDO.
+    DEFINE VARIABLE cPayloadB64 AS CHARACTER NO-UNDO.
+    DEFINE VARIABLE cPayloadB64Fixed AS CHARACTER NO-UNDO.
+    DEFINE VARIABLE mDecoded  AS MEMPTR     NO-UNDO.
+    DEFINE VARIABLE lcDecoded AS LONGCHAR   NO-UNDO.
+    DEFINE VARIABLE oJson     AS JsonObject NO-UNDO.
     
+
+    /* localiza as partes do token */
+    ASSIGN
+        iSep1 = INDEX(Token, ".")
+        iSep2 = INDEX(Token, ".", iSep1 + 1).
+
+    IF iSep1 = 0 OR iSep2 = 0 THEN DO:
+        MESSAGE "JWT inválido (formato incorreto)." VIEW-AS ALERT-BOX ERROR.
+        RETURN ?.
+    END.
+
+    /* extrai o payload (meio do token) */
+    cPayloadB64 = SUBSTRING(Token, iSep1 + 1, iSep2 - iSep1 - 1).
+
+    /* ajusta base64url -> base64 normal */
+    cPayloadB64Fixed = REPLACE(cPayloadB64, "-", "+").
+    cPayloadB64Fixed = REPLACE(cPayloadB64Fixed, "_", "/").
+
+    DO WHILE (LENGTH(cPayloadB64Fixed) MODULO 4) <> 0:
+        cPayloadB64Fixed = cPayloadB64Fixed + "=".
+    END.
+
+    /* decodifica e converte */
+    mDecoded = BASE64-DECODE(cPayloadB64Fixed).
+    COPY-LOB FROM mDecoded TO lcDecoded.
+    SET-SIZE(mDecoded) = 0.
+
+    /* grava o conteúdo num stream temporário */
+    OUTPUT STREAM sJson TO VALUE("jwt_payload.tmp") CONVERT TARGET "UTF-8".
+    //PUT STREAM sJson UNFORMATTED lcDecoded.
+    OUTPUT STREAM sJson CLOSE.
+
+    /* lê o JSON a partir do stream */
+    oJson = NEW JsonObject().
+    INPUT STREAM sJson FROM VALUE("jwt_payload.tmp") CONVERT SOURCE "UTF-8".
+   //oJson:Read(INPUT STREAM sJson).
+    INPUT STREAM sJson CLOSE.
+
+    /* limpa o arquivo temporário (opcional) */
+    OS-DELETE VALUE("jwt_payload.tmp") NO-ERROR.
+
+   //RETURN oJson.
+END FUNCTION.
+
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
-
-
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Trata Win-Client 
 FUNCTION Fc-Trata RETURNS LOGICAL
