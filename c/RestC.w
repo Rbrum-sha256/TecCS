@@ -42,6 +42,7 @@ USING OpenEdge.Net.HTTP.*.
 using OpenEdge.Net.URI.
 
 USING OpenEdge.Core.Memptr FROM PROPATH.
+ USING Progress.Json.ObjectModel.*.
 using Progress.Json.ObjectModel.JsonObject.
 using Progress.Json.ObjectModel.JsonArray.
 USING OpenEdge.Net.HTTP.Filter.Writer.RequestWriterBuilder FROM PROPATH.
@@ -51,7 +52,7 @@ CREATE WIDGET-POOL.
 /* ***************************  Definitions  ************************** */
 
 /* Parameters Definitions ---                                           */
- DEFINE STREAM sJson.    
+DEFINE STREAM sJson.    
 def temp-table ttCli
     field name       as char
     field username   as char
@@ -62,31 +63,32 @@ def temp-table ttCli
     field education  as char
     .   
 /* Local Variable Definition ---                                        */
-def var oClient        as IHttpClient   no-undo.
-def var oUri           as URI           no-undo.
-def var oReq           as IHttpRequest  no-undo.
-def var oResp          as IHttpResponse no-undo.
-def var oCreds         as Credentials   no-undo.
+def    var      oClient        as IHttpClient   no-undo.
+def    var      oUri           as URI           no-undo.
+def    var      oReq           as IHttpRequest  no-undo.
+def    var      oResp          as IHttpResponse no-undo.
+def    var      oCreds         as Credentials   no-undo.
       
-def var oJsonRespObj   as JsonObject    no-undo.        
-def var oJsonRespArray as JsonArray     no-undo.
-def var oJsonObj       as JsonObject    no-undo.
-def var oJsonArray     as JsonArray     no-undo.
+def    var      oJsonRespObj   as JsonObject    no-undo.        
+def    var      oJsonRespArray as JsonArray     no-undo.
+def    var      oJsonObj       as JsonObject    no-undo.
+def    var      oJsonArray     as JsonArray     no-undo.
 
-DEFINE VARIABLE token       AS CHARACTER NO-UNDO.
-DEFINE VARIABLE expira_em   AS INT64     NO-UNDO.  
-DEFINE VARIABLE mensagem    AS CHARACTER NO-UNDO.
-DEFINE VARIABLE codigo      AS CHARACTER NO-UNDO.
-DEFINE VARIABLE detalhes    AS CHARACTER NO-UNDO.
+DEFINE VARIABLE token          AS CHARACTER     NO-UNDO.
+DEFINE VARIABLE expira_em      AS INT64         NO-UNDO.  
+DEFINE VARIABLE mensagem       AS CHARACTER     NO-UNDO.
+DEFINE VARIABLE codigo         AS CHARACTER     NO-UNDO.
+DEFINE VARIABLE detalhes       AS CHARACTER     NO-UNDO.
       
-DEFINE VARIABLE i           AS INTEGER NO-UNDO.
-DEFINE VARIABLE op-CRUD     AS integer NO-UNDO.
-DEFINE VARIABLE formatado   AS CHARACTER NO-UNDO initial "@Email.com".
-DEFINE VARIABLE log         AS LOGICAL NO-UNDO initial false.
+DEFINE VARIABLE i              AS INTEGER       NO-UNDO.
+DEFINE VARIABLE op-CRUD        AS integer       NO-UNDO.
+DEFINE VARIABLE formatado      AS CHARACTER     NO-UNDO initial "@Email.com".
+DEFINE VARIABLE log            AS LOGICAL       NO-UNDO initial false.
 
-DEFINE VARIABLE metodo  AS CHARACTER NO-UNDO initial "HTTP".
-DEFINE VARIABLE host    AS CHARACTER NO-UNDO initial "localhost".
-DEFINE VARIABLE porta   AS CHARACTER NO-UNDO initial "8080".
+DEFINE VARIABLE metodo         AS CHARACTER     NO-UNDO initial "HTTP".
+DEFINE VARIABLE host           AS CHARACTER     NO-UNDO initial "localhost".
+DEFINE VARIABLE porta          AS CHARACTER     NO-UNDO initial "8080".
+DEFINE VARIABLE role           AS CHARACTER     NO-UNDO.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -102,15 +104,12 @@ DEFINE VARIABLE porta   AS CHARACTER NO-UNDO initial "8080".
 /* Name of designated FRAME-NAME and/or first browse and/or first query */
 &Scoped-define FRAME-NAME frm-home
 
-/* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS RECT-1 RECT-2 RECT-3 
-
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
 &Scoped-define List-2 f-Unome 
 &Scoped-define List-4 f-exp 
-&Scoped-define List-6 f-Unome f-nome f-senha f-senha-2 f-email f-telefone ~
-f-Form f-exp 
+&Scoped-define List-6 f-Unome f-nome f-senha f-email f-telefone f-Form ~
+f-exp 
 
 /* _UIB-PREPROCESSOR-BLOCK-END */
 &ANALYZE-RESUME
@@ -120,63 +119,63 @@ f-Form f-exp
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Apagar Win-Client 
 FUNCTION Fc-Apagar RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Atualizar Win-Client 
 FUNCTION Fc-Atualizar RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Cadastrar Win-Client 
 FUNCTION Fc-Cadastrar RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Conectar Win-Client 
 FUNCTION Fc-Conectar RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Inicia Win-Client 
 FUNCTION Fc-Inicia RETURNS LOGICAL
-  ( /* parameter-definitions */ )  FORWARD.
+    ( /* parameter-definitions */ )  FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Ler Win-Client 
 FUNCTION Fc-Ler RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Login Win-Client 
 FUNCTION Fc-Login RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Logout Win-Client 
 FUNCTION Fc-Logout RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Token Win-Client 
 FUNCTION Fc-Token RETURNS LOGICAL
-  (  ) FORWARD.
+    (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -223,17 +222,16 @@ DEFINE VARIABLE f-port AS CHARACTER FORMAT "x(10)":U INITIAL "PORT"
      SIZE 30 BY 1
      FGCOLOR 9 FONT 3 NO-UNDO.
 
-DEFINE RECTANGLE RECT-1
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 55 BY 8.57.
+DEFINE VARIABLE f-role AS INTEGER 
+     VIEW-AS RADIO-SET HORIZONTAL
+     RADIO-BUTTONS 
+          "User", 1,
+"Company", 2
+     SIZE 26 BY 1.19 NO-UNDO.
 
-DEFINE RECTANGLE RECT-2
+DEFINE RECTANGLE RECT-8
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 32 BY 4.29.
-
-DEFINE RECTANGLE RECT-3
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 42 BY 15.
+     SIZE 60 BY 10.
 
 DEFINE BUTTON bt-L 
      LABEL "Login" 
@@ -245,21 +243,39 @@ DEFINE BUTTON bt-VC
 
 DEFINE VARIABLE f-senhaL AS CHARACTER FORMAT "X(256)":U INITIAL "Senha" 
      VIEW-AS FILL-IN 
-     SIZE 39 BY 1 NO-UNDO.
+     SIZE 39 BY 1
+     FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-UnomeL AS CHARACTER FORMAT "X(30)":U INITIAL "Usuario" 
      VIEW-AS FILL-IN 
-     SIZE 39 BY 1 NO-UNDO.
+     SIZE 39 BY 1
+     FGCOLOR 9  NO-UNDO.
 
-DEFINE VARIABLE fi-host AS CHARACTER FORMAT "X(10)":U 
+DEFINE RECTANGLE RECT-10
+     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+     SIZE 52 BY 7.38.
+
+DEFINE VARIABLE fi-host AS CHARACTER FORMAT "X(15)":U 
      LABEL "host" 
       VIEW-AS TEXT 
-     SIZE 20 BY .62 NO-UNDO.
+     SIZE 30.2 BY .62
+     FGCOLOR 10  NO-UNDO.
 
 DEFINE VARIABLE fi-port AS CHARACTER FORMAT "X(20)":U 
      LABEL "port" 
       VIEW-AS TEXT 
-     SIZE 20 BY .62 NO-UNDO.
+     SIZE 20 BY .62
+     FGCOLOR 10  NO-UNDO.
+
+DEFINE VARIABLE fi-role AS CHARACTER FORMAT "X(20)":U 
+     LABEL "role" 
+      VIEW-AS TEXT 
+     SIZE 20 BY .62
+     FGCOLOR 10  NO-UNDO.
+
+DEFINE BUTTON bt-C 
+     LABEL "bt-C" 
+     SIZE 8 BY 1.91.
 
 DEFINE BUTTON bt-D 
      LABEL "bt-D" 
@@ -276,42 +292,60 @@ DEFINE BUTTON bt-U
 DEFINE VARIABLE f-email AS CHARACTER FORMAT "X(30)":U 
      LABEL "E-mail" 
      VIEW-AS FILL-IN 
-     SIZE 39 BY 1 NO-UNDO.
+     SIZE 39 BY 1
+     FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-exp AS CHARACTER FORMAT "X(256)":U 
      LABEL "Experiencia" 
      VIEW-AS FILL-IN 
-     SIZE 59.8 BY 2.14 NO-UNDO.
+     SIZE 59.8 BY 2.14
+     FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-Form AS CHARACTER FORMAT "X(256)":U 
      LABEL "Formacao" 
      VIEW-AS FILL-IN 
-     SIZE 44 BY .95 NO-UNDO.
+     SIZE 44 BY .95
+     FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-nome AS CHARACTER FORMAT "X(256)":U 
      LABEL "Nome" 
      VIEW-AS FILL-IN 
-     SIZE 42 BY 1 NO-UNDO.
+     SIZE 42 BY 1
+     FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-senha AS CHARACTER FORMAT "X(256)":U 
      LABEL "Senha" 
      VIEW-AS FILL-IN 
-     SIZE 42 BY 1 NO-UNDO.
-
-DEFINE VARIABLE f-senha-2 AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Senha" 
-     VIEW-AS FILL-IN 
-     SIZE 42 BY 1 NO-UNDO.
+     SIZE 42 BY 1
+     FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-telefone AS CHARACTER FORMAT "+55(x(2)) 9 x(4)-x(4)":U 
      LABEL "Telefone" 
      VIEW-AS FILL-IN 
-     SIZE 31 BY 1 NO-UNDO.
+     SIZE 31 BY 1
+     FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-Unome AS CHARACTER FORMAT "X(256)":U 
      LABEL "Nome de Usuario" 
      VIEW-AS FILL-IN 
-     SIZE 53.4 BY 1 NO-UNDO.
+     SIZE 53.4 BY 1
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE RECTANGLE RECT-4
+     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+     SIZE 96 BY 4.29.
+
+DEFINE RECTANGLE RECT-5
+     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+     SIZE 96 BY 4.05.
+
+DEFINE RECTANGLE RECT-6
+     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+     SIZE 96 BY 2.86.
+
+DEFINE RECTANGLE RECT-7
+     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+     SIZE 101 BY 2.62.
 
 
 /* ************************  Frame Definitions  *********************** */
@@ -319,61 +353,65 @@ DEFINE VARIABLE f-Unome AS CHARACTER FORMAT "X(256)":U
 DEFINE FRAME frm-rodape
      fi-host AT ROW 1.71 COL 9.8 COLON-ALIGNED WIDGET-ID 2
      fi-port AT ROW 2.81 COL 9.8 COLON-ALIGNED WIDGET-ID 4
+     fi-role AT ROW 3.86 COL 9.8 COLON-ALIGNED WIDGET-ID 6
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 18.14
-         SIZE 104 BY 3.1
+         SIZE 101.6 BY 3.86
          FONT 3 WIDGET-ID 700.
 
 DEFINE FRAME frm-home
-     RECT-1 AT ROW 1.71 COL 1.6 WIDGET-ID 22
-     RECT-2 AT ROW 10.52 COL 1.6 WIDGET-ID 24
-     RECT-3 AT ROW 1.71 COL 61 WIDGET-ID 36
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 1
-         SIZE 103.6 BY 17.14
+         SIZE 101.6 BY 17.14
          FONT 3 WIDGET-ID 400.
-
-DEFINE FRAME frm-C
-     f-host AT ROW 5.19 COL 43.8 COLON-ALIGNED NO-LABEL WIDGET-ID 4
-     f-port AT ROW 6.62 COL 43.8 COLON-ALIGNED NO-LABEL WIDGET-ID 6
-     bt-con AT ROW 8.05 COL 53.4 WIDGET-ID 8
-    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 1
-         SIZE 103 BY 15.95
-         FONT 3 WIDGET-ID 600.
 
 DEFINE FRAME frm-L
      f-UnomeL AT ROW 6 COL 31.8 NO-LABEL WIDGET-ID 10
      f-senhaL AT ROW 7.43 COL 29.8 COLON-ALIGNED NO-LABEL WIDGET-ID 8
      bt-L AT ROW 9.1 COL 31.8 WIDGET-ID 20
      bt-VC AT ROW 9.1 COL 55.8 WIDGET-ID 22
-    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 2 ROW 1
-         SIZE 102 BY 16
-         FONT 3 WIDGET-ID 500.
-
-DEFINE FRAME frm-U
-     bt-R AT ROW 1.24 COL 69 WIDGET-ID 30
-     bt-U AT ROW 1.24 COL 77.6 WIDGET-ID 2
-     bt-D AT ROW 1.24 COL 86.2 WIDGET-ID 28
-     f-Unome AT ROW 3.71 COL 31 COLON-ALIGNED WIDGET-ID 6
-     f-nome AT ROW 4.81 COL 31 COLON-ALIGNED WIDGET-ID 4
-     f-senha AT ROW 5.86 COL 31 COLON-ALIGNED WIDGET-ID 8
-     f-senha-2 AT ROW 7.05 COL 31 COLON-ALIGNED WIDGET-ID 18
-     f-email AT ROW 8.95 COL 31 COLON-ALIGNED WIDGET-ID 10
-     f-telefone AT ROW 10.14 COL 31 COLON-ALIGNED WIDGET-ID 12
-     f-Form AT ROW 11.91 COL 31 COLON-ALIGNED WIDGET-ID 14
-     f-exp AT ROW 13.1 COL 31 COLON-ALIGNED WIDGET-ID 16
+     RECT-10 AT ROW 4.57 COL 25 WIDGET-ID 24
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 1
-         SIZE 103.8 BY 17.1
-         FONT 3
-         TITLE "" WIDGET-ID 300.
+         SIZE 101 BY 16
+         FONT 3 WIDGET-ID 500.
+
+DEFINE FRAME frm-C
+     f-host AT ROW 7.43 COL 34 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+     f-port AT ROW 8.86 COL 34 COLON-ALIGNED NO-LABEL WIDGET-ID 6
+     f-role AT ROW 10.29 COL 38 NO-LABEL WIDGET-ID 12
+     bt-con AT ROW 12.19 COL 43.6 WIDGET-ID 8
+     RECT-8 AT ROW 5.29 COL 21 WIDGET-ID 10
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+         SIDE-LABELS NO-UNDERLINE THREE-D 
+         AT COLUMN 1 ROW 1
+         SIZE 101 BY 15.95
+         FONT 3 WIDGET-ID 600.
+
+DEFINE FRAME frm-U
+     bt-C AT ROW 1.24 COL 60.4 WIDGET-ID 32
+     bt-R AT ROW 1.24 COL 69 WIDGET-ID 30
+     bt-U AT ROW 1.24 COL 77.6 WIDGET-ID 2
+     bt-D AT ROW 1.24 COL 86.2 WIDGET-ID 28
+     f-Unome AT ROW 5.38 COL 31 COLON-ALIGNED WIDGET-ID 6
+     f-nome AT ROW 6.48 COL 31 COLON-ALIGNED WIDGET-ID 4
+     f-senha AT ROW 7.52 COL 31 COLON-ALIGNED WIDGET-ID 8
+     f-email AT ROW 9.43 COL 31 COLON-ALIGNED WIDGET-ID 10
+     f-telefone AT ROW 10.62 COL 31 COLON-ALIGNED WIDGET-ID 12
+     f-Form AT ROW 12.38 COL 31 COLON-ALIGNED WIDGET-ID 14
+     f-exp AT ROW 13.57 COL 31 COLON-ALIGNED WIDGET-ID 16
+     RECT-4 AT ROW 4.81 COL 4 WIDGET-ID 34
+     RECT-5 AT ROW 11.95 COL 4 WIDGET-ID 36
+     RECT-6 AT ROW 9.1 COL 4 WIDGET-ID 38
+     RECT-7 AT ROW 1 COL 1.2 WIDGET-ID 40
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+         SIDE-LABELS NO-UNDERLINE THREE-D 
+         AT COLUMN 1 ROW 1
+         SIZE 102 BY 17.1
+         FONT 3 WIDGET-ID 300.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -393,11 +431,11 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW Win-Client ASSIGN
          HIDDEN             = YES
          TITLE              = "Client"
-         HEIGHT             = 20.29
-         WIDTH              = 103.8
-         MAX-HEIGHT         = 22.33
+         HEIGHT             = 21.1
+         WIDTH              = 101.8
+         MAX-HEIGHT         = 22.91
          MAX-WIDTH          = 190.6
-         VIRTUAL-HEIGHT     = 22.33
+         VIRTUAL-HEIGHT     = 22.91
          VIRTUAL-WIDTH      = 190.6
          RESIZE             = yes
          SCROLL-BARS        = no
@@ -430,6 +468,12 @@ ASSIGN FRAME frm-C:FRAME = FRAME frm-home:HANDLE
                                                                         */
 /* SETTINGS FOR FRAME frm-home
    FRAME-NAME                                                           */
+
+DEFINE VARIABLE XXTABVALXX AS LOGICAL NO-UNDO.
+
+ASSIGN XXTABVALXX = FRAME frm-C:MOVE-BEFORE-TAB-ITEM (FRAME frm-L:HANDLE)
+/* END-ASSIGN-TABS */.
+
 /* SETTINGS FOR FRAME frm-L
                                                                         */
 /* SETTINGS FOR FILL-IN f-UnomeL IN FRAME frm-L
@@ -442,6 +486,9 @@ ASSIGN
 ASSIGN 
        fi-port:READ-ONLY IN FRAME frm-rodape        = TRUE.
 
+ASSIGN 
+       fi-role:READ-ONLY IN FRAME frm-rodape        = TRUE.
+
 /* SETTINGS FOR FRAME frm-U
                                                                         */
 /* SETTINGS FOR FILL-IN f-email IN FRAME frm-U
@@ -453,8 +500,6 @@ ASSIGN
 /* SETTINGS FOR FILL-IN f-nome IN FRAME frm-U
    6                                                                    */
 /* SETTINGS FOR FILL-IN f-senha IN FRAME frm-U
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-senha-2 IN FRAME frm-U
    6                                                                    */
 /* SETTINGS FOR FILL-IN f-telefone IN FRAME frm-U
    6                                                                    */
@@ -499,13 +544,28 @@ DO:
 &ANALYZE-RESUME
 
 
+&Scoped-define FRAME-NAME frm-U
+&Scoped-define SELF-NAME bt-C
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-C Win-Client
+ON CHOOSE OF bt-C IN FRAME frm-U /* bt-C */
+DO:
+        assign 
+            op-CRUD = 3.
+        Fc-Cadastrar().
+     
+    END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define FRAME-NAME frm-C
 &Scoped-define SELF-NAME bt-con
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-con Win-Client
 ON CHOOSE OF bt-con IN FRAME frm-C /* Conectar */
 DO:
-    Fc-Conectar().
-END.
+        Fc-Conectar().
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -516,9 +576,10 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-D Win-Client
 ON CHOOSE OF bt-D IN FRAME frm-U /* bt-D */
 DO:
-    assign op-CRUD = 4.
-    Fc-Apagar(). 
-END.
+        assign 
+            op-CRUD = 4.
+        Fc-Apagar(). 
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -529,9 +590,10 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-L Win-Client
 ON CHOOSE OF bt-L IN FRAME frm-L /* Login */
 DO:
-    assign op-CRUD = 5. 
-    Fc-Login().  
-END.
+        assign 
+            op-CRUD = 5. 
+        Fc-Login().  
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -542,10 +604,11 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-R Win-Client
 ON CHOOSE OF bt-R IN FRAME frm-U /* bt-R */
 DO:
-     assign op-CRUD = 2.
-     Fc-Ler().
+        assign 
+            op-CRUD = 2.
+        Fc-Ler().
        
-END.
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -555,10 +618,11 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-U Win-Client
 ON CHOOSE OF bt-U IN FRAME frm-U /* bt-U */
 DO:
-     assign op-CRUD = 3.
-     Fc-Cadastrar().
+        assign 
+            op-CRUD = 3.
+        Fc-Cadastrar().
      
-END.
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -569,12 +633,13 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-VC Win-Client
 ON CHOOSE OF bt-VC IN FRAME frm-L /* Cadastrar */
 DO:
-    assign op-CRUD = 1. 
-    Fc-Cadastrar().
-    frame frm-u:hidden = false.
-    frame frm-L:hidden = true.
-    frame frm-C:hidden = true.
-END.
+        assign 
+            op-CRUD = 1. 
+        Fc-Cadastrar().
+        frame frm-u:hidden = false.
+        frame frm-L:hidden = true.
+        frame frm-C:hidden = true.
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -584,11 +649,11 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Conectar Win-Client
 ON CHOOSE OF MENU-ITEM m_Conectar /* Conectar */
 DO:
-   frame frm-C:hidden = false.
-   frame frm-home:hidden = false.
+        frame frm-C:hidden = false.
+        frame frm-home:hidden = false.
    
    
-END.
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -598,11 +663,11 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Login Win-Client
 ON CHOOSE OF MENU-ITEM m_Login /* Login */
 DO:
-  frame frm-L:hidden = false.
-  frame frm-u:hidden = true.
-  frame frm-C:hidden = true.
-  frame frm-home:hidden = false.
-END.
+        frame frm-L:hidden = false.
+        frame frm-u:hidden = true.
+        frame frm-C:hidden = true.
+        frame frm-home:hidden = false.
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -612,11 +677,12 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Logout Win-Client
 ON CHOOSE OF MENU-ITEM m_Logout /* Logout */
 DO:
-  assign op-CRUD = 6.
-  Fc-Logout().
-  Fc-Inicia() .
+        assign 
+            op-CRUD = 6.
+        Fc-Logout().
+        Fc-Inicia() .
   
-END.
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -626,11 +692,11 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_User Win-Client
 ON CHOOSE OF MENU-ITEM m_User /* User */
 DO:
-    frame frm-u:hidden = false.    
-    frame frm-home:hidden = true.
-    frame frm-L:hidden = true.
+        frame frm-u:hidden = false.    
+        frame frm-home:hidden = true.
+        frame frm-L:hidden = true.
    
-END.
+    END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -664,8 +730,8 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
     RUN enable_UI.
     Fc-Inicia() .
     display host @ fi-host
-            porta @ fi-port 
-    with frame frm-rodape.
+        porta @ fi-port 
+        with frame frm-rodape.
     IF NOT THIS-PROCEDURE:PERSISTENT THEN
         WAIT-FOR CLOSE OF THIS-PROCEDURE.
 END.
@@ -706,28 +772,27 @@ PROCEDURE enable_UI :
                These statements here are based on the "Other 
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
-  DISPLAY f-host f-port 
+  DISPLAY f-host f-port f-role 
       WITH FRAME frm-C IN WINDOW Win-Client.
-  ENABLE f-host f-port bt-con 
+  ENABLE RECT-8 f-host f-port f-role bt-con 
       WITH FRAME frm-C IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-C}
-  ENABLE RECT-1 RECT-2 RECT-3 
-      WITH FRAME frm-home IN WINDOW Win-Client.
+  VIEW FRAME frm-home IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-home}
-  DISPLAY f-Unome f-nome f-senha f-senha-2 f-email f-telefone f-Form f-exp 
-      WITH FRAME frm-U IN WINDOW Win-Client.
-  ENABLE bt-R bt-U bt-D f-Unome f-nome f-senha f-senha-2 f-email f-telefone 
-         f-Form f-exp 
-      WITH FRAME frm-U IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-U}
   DISPLAY f-UnomeL f-senhaL 
       WITH FRAME frm-L IN WINDOW Win-Client.
-  ENABLE f-UnomeL f-senhaL bt-L bt-VC 
+  ENABLE RECT-10 f-UnomeL f-senhaL bt-L bt-VC 
       WITH FRAME frm-L IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-L}
-  DISPLAY fi-host fi-port 
+  DISPLAY f-Unome f-nome f-senha f-email f-telefone f-Form f-exp 
+      WITH FRAME frm-U IN WINDOW Win-Client.
+  ENABLE RECT-4 RECT-5 RECT-6 RECT-7 bt-C bt-R bt-U bt-D f-Unome f-nome f-senha 
+         f-email f-telefone f-Form f-exp 
+      WITH FRAME frm-U IN WINDOW Win-Client.
+  {&OPEN-BROWSERS-IN-QUERY-frm-U}
+  DISPLAY fi-host fi-port fi-role 
       WITH FRAME frm-rodape IN WINDOW Win-Client.
-  ENABLE fi-host fi-port 
+  ENABLE fi-host fi-port fi-role 
       WITH FRAME frm-rodape IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-rodape}
   VIEW Win-Client.
@@ -739,10 +804,11 @@ END PROCEDURE.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE mostraregistro Win-Client 
 PROCEDURE mostraregistro :
 /*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
-display {&List-6} with frame frm-u.
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
+    
+    Fc-Trata().
     apply "entry" to {&List-4} in frame frm-u.
 
 END PROCEDURE.
@@ -753,17 +819,17 @@ END PROCEDURE.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE mudadeoperacao Win-Client 
 PROCEDURE mudadeoperacao :
 /*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/  
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/  
     case op-CRUD:
         when 1 then 
             do.
                 assign
                     
-                    bt-R:sensitive in frame frm-u    = yes
-                    bt-U:sensitive in frame frm-u    = yes
-                    bt-D:sensitive in frame frm-u    = no.
+                    bt-R:sensitive in frame frm-u = yes
+                    bt-U:sensitive in frame frm-u = yes
+                    bt-D:sensitive in frame frm-u = no.
 
                 /* limpara a tela */
                 clear frame frm-u.
@@ -777,11 +843,11 @@ PROCEDURE mudadeoperacao :
             do.
                 assign
                    
-                    bt-R:sensitive in frame frm-u    = no
-                    bt-U:sensitive in frame frm-u    = yes
-                    bt-D:sensitive in frame frm-u    = yes.
+                    bt-R:sensitive in frame frm-u = no
+                    bt-U:sensitive in frame frm-u = yes
+                    bt-D:sensitive in frame frm-u = yes.
 
-                    /* desabilita os campos da chave */ 
+                /* desabilita os campos da chave */ 
                    
                 /* posiciona o cursor no primeiro campo alteravel */
                 apply "entry" to {&List-4} in frame frm-u.
@@ -800,16 +866,16 @@ END PROCEDURE.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Apagar Win-Client 
 FUNCTION Fc-Apagar RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
     Fc-Token().
     ASSIGN 
         oClient = ClientBuilder:Build():Client
-        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-        oUri:Path = "/users/".
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
+    oUri:Path = "/users/".
 
     oReq = RequestBuilder:Delete(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -818,11 +884,35 @@ FUNCTION Fc-Apagar RETURNS LOGICAL
 
     oResp = oClient:Execute(oReq).
 
-    IF oResp:StatusCode = 204 THEN DO:
-        MESSAGE "Cliente excluído." VIEW-AS ALERT-BOX INFO.
-        RETURN TRUE.
-    END.
-    ELSE DO:
+    IF oResp:StatusCode = 200 THEN 
+        DO:
+            assign 
+                    mensagem = oJsonRespObj:GetCharacter("message")    
+                . 
+        END.
+    IF oResp:StatusCode eq 401 THEN 
+        do:
+           
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 403 THEN 
+        do:
+          
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 404 THEN 
+        do:
+          
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+    ELSE 
+    DO:
         MESSAGE "Erro ao excluir cliente. Status:" oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
         RETURN FALSE.
     END.
@@ -834,17 +924,17 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Atualizar Win-Client 
 FUNCTION Fc-Atualizar RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
     empty temp-table ttcli.
     Fc-Token().
     assign 
-        oClient   = ClientBuilder:Build():Client       
-        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
-        oUri:Path = "/users/".  
+        oClient = ClientBuilder:Build():Client       
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/users/".  
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
@@ -865,21 +955,51 @@ FUNCTION Fc-Atualizar RETURNS LOGICAL
     /* valida o tipo de retorno, se for Json processa normalmente */
     if type-of(oResp:Entity, JsonObject) then 
     do:
-    
         oJsonRespObj = cast(oResp:Entity, JsonObject).
-        create ttcli.
-        assign 
-            ttcli.name          = oJsonRespObj:getCharacter("name")    
-            ttcli.email         = oJsonRespObj:getCharacter("email")
-            ttcli.password      = oJsonRespObj:getCharacter("password")
-            ttcli.phone         = oJsonRespObj:getCharacter("phone")
-            ttcli.experience    = oJsonRespObj:getCharacter("experience")
-            ttcli.education     = oJsonRespObj:getCharacter("education").
-        assign 
-            mensagem    = oJsonRespObj:GetCharacter("message") 
-            codigo      = oJsonRespObj:GetCharacter("code") 
-            detalhes    = oJsonRespObj:GetCharacter("detail")  
-            .                 
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 200 THEN 
+        do:
+           create ttcli.
+            assign 
+            ttcli.name       = oJsonRespObj:getCharacter("name")    
+            ttcli.email      = oJsonRespObj:getCharacter("email")
+            ttcli.password   = oJsonRespObj:getCharacter("password")
+            ttcli.phone      = oJsonRespObj:getCharacter("phone")
+            ttcli.experience = oJsonRespObj:getCharacter("experience")
+            ttcli.education  = oJsonRespObj:getCharacter("education").  
+            . 
+        end. 
+        IF oResp:StatusCode eq 401 THEN 
+        do:
+           
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 403 THEN 
+        do:
+          
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 404 THEN 
+        do:
+          
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 422 THEN 
+        do:
+           /* Mostra o total de registros retornados */
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message") 
+                codigo   = oJsonRespObj:GetCharacter("code") 
+                detalhes = oJsonRespObj:GetCharacter("detail")  
+            . 
+        end.                      
     end.
     CATCH e AS Progress.Lang.Error:
         MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
@@ -892,16 +1012,15 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Cadastrar Win-Client 
 FUNCTION Fc-Cadastrar RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
-    Fc-Token().
-       assign 
-        oClient   = ClientBuilder:Build():Client   
-        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
-        oUri:Path = "/users".  
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
+    assign 
+        oClient = ClientBuilder:Build():Client   
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/users".  
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
@@ -919,20 +1038,41 @@ FUNCTION Fc-Cadastrar RETURNS LOGICAL
             :AcceptJson()
             :Request.
     oResp = oClient:Execute(oReq).
-  
-
+    
     if type-of(oResp:Entity, JsonObject) then 
     do:
-        
         oJsonRespObj = cast(oResp:Entity, JsonObject).
-        oJsonArray = oJsonRespArray.        
-
-        /* Mostra o total de registros retornados */
-        assign 
-            mensagem    = oJsonRespObj:GetCharacter("message") 
-            codigo      = oJsonRespObj:GetCharacter("code") 
-            detalhes    = oJsonRespObj:GetCharacter("detail")  
-            .               
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 201 THEN 
+        do:
+           /* Mostra o total de registros retornados */
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message") 
+                codigo   = oJsonRespObj:GetCharacter("code") 
+                detalhes = oJsonRespObj:GetCharacter("detail")  
+            . 
+        end. 
+        IF oResp:StatusCode eq 409 THEN 
+        do:
+           /* Mostra o total de registros retornados */
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 422 THEN 
+        do:
+           /* Mostra o total de registros retornados */
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message") 
+                codigo   = oJsonRespObj:GetCharacter("code") 
+                detalhes = oJsonRespObj:GetCharacter("detail")  
+            . 
+        end.
+        ELSE DO :
+                 MESSAGE "outra coisa"
+                 VIEW-AS ALERT-BOX. 
+        END.                   
     end. 
     CATCH e AS Progress.Lang.Error:
         MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
@@ -944,19 +1084,22 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Conectar Win-Client 
 FUNCTION Fc-Conectar RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
-    assign porta = input frame frm-C f-port
-           host  = input frame frm-C f-host .
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
+    assign 
+        porta = input frame frm-C f-port
+        host  = input frame frm-C f-host 
+        role  = input frame frm-C f-role.
            
     frame frm-c:hidden = true.
     
     display host @ fi-host
-            porta @ fi-port 
-    with frame frm-rodape.
+        porta @ fi-port 
+        role @ fi-role
+        with frame frm-rodape.
 
 END FUNCTION.
 
@@ -965,11 +1108,11 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Inicia Win-Client 
 FUNCTION Fc-Inicia RETURNS LOGICAL
-  ( /* parameter-definitions */ ) :
-/*------------------------------------------------------------------------------
-  Purpose:  
-    Notes:  
-------------------------------------------------------------------------------*/
+    ( /* parameter-definitions */ ) :
+    /*------------------------------------------------------------------------------
+      Purpose:  
+        Notes:  
+    ------------------------------------------------------------------------------*/
     frame frm-c:hidden = true.
     frame frm-u:hidden = true.
     frame frm-l:hidden = true.
@@ -982,16 +1125,16 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Ler Win-Client 
 FUNCTION Fc-Ler RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
-        Fc-Token().
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
+    Fc-Token().
     ASSIGN 
         oClient = ClientBuilder:Build():Client
-        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-        oUri:Path = "/users/".
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
+    oUri:Path = "/users/".
 
     oReq = RequestBuilder:get(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -1002,27 +1145,50 @@ FUNCTION Fc-Ler RETURNS LOGICAL
 
     if type-of(oResp:Entity, JsonObject) then 
     do:
-        
         oJsonRespObj = cast(oResp:Entity, JsonObject).
-        oJsonArray = oJsonRespArray.        
-
-        CREATE ttcli.
-        assign 
-            ttcli.name = oJsonRespObj:GetCharacter("name")
-            ttcli.username = oJsonRespObj:GetCharacter("username")
-            ttcli.email = oJsonRespObj:GetCharacter("email")
-            ttcli.password = oJsonRespObj:GetCharacter("password")
-            ttcli.phone = oJsonRespObj:GetCharacter("phone")
-            ttcli.experience = oJsonRespObj:GetCharacter("experience")
-            ttcli.education = oJsonRespObj:GetCharacter("education")
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 200 THEN 
+        do:
+            CREATE ttcli.
+            assign 
+                ttcli.name       = oJsonRespObj:GetCharacter("name")
+                ttcli.username   = oJsonRespObj:GetCharacter("username")
+                ttcli.email      = oJsonRespObj:GetCharacter("email")
+                ttcli.password   = oJsonRespObj:GetCharacter("password")
+                ttcli.phone      = oJsonRespObj:GetCharacter("phone")
+                ttcli.experience = oJsonRespObj:GetCharacter("experience")
+                ttcli.education  = oJsonRespObj:GetCharacter("education")
+                .              
+        end.
+        IF oResp:StatusCode eq 401 THEN 
+        do:
            
-            .               
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 403 THEN 
+        do:
+          
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
+        IF oResp:StatusCode eq 404 THEN 
+        do:
+          
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message")    
+            . 
+        end.
     end.
-    ELSE DO:
+    ELSE 
+    DO:
         MESSAGE "Falha ao ler cliente. Status:" oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
         RETURN FALSE.
     END.
-
+    disp mensagem. 
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1030,15 +1196,15 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Login Win-Client 
 FUNCTION Fc-Login RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
-    Fc-Token().
-     assign 
-        oClient   = ClientBuilder:Build():Client       
-        oUri = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
+    
+    assign 
+        oClient = ClientBuilder:Build():Client       
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
         oUri:Path = "/login".  
         
     /* Cria objeto Json e popula ele */
@@ -1050,35 +1216,36 @@ FUNCTION Fc-Login RETURNS LOGICAL
     /* Faz a requisicao utilizando POST */
     oReq  = RequestBuilder:Post(oUri, oJsonObj)
             :AcceptJson()
-            :Request.      
+            :Request.     
+             
     oResp = oClient:Execute(oReq).
     
-    MESSAGE oResp:ContentType
-    VIEW-AS ALERT-BOX.
     
     /* valida o tipo de retorno*/
     if type-of(oResp:Entity, JsonObject) then 
     do:
-        MESSAGE "json"
-        VIEW-AS ALERT-BOX.
-        assign 
+        oJsonRespObj = cast(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 200 THEN 
+        do: 
+           assign
             Token     = oJsonRespObj:GetCharacter("token")
             expira_em = oJsonRespObj:GetInt64("expires_in")
+            log = true.
+        end.
+        ELSE DO :
+           assign   
             mensagem  = oJsonRespObj:GetCharacter("message")
-            codigo      = oJsonRespObj:GetCharacter("code") 
-            detalhes    = oJsonRespObj:GetCharacter("detail") 
-            .
+           .       
+        END. 
+        
     end.
-
-    ELSE DO:
-        MESSAGE "Falha no login. Código: " oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
-        RETURN FALSE.
-    END.
-     
+    disp mensagem. 
+    
     CATCH e AS Progress.Lang.Error:
         MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
     END CATCH.
-
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1086,15 +1253,15 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Logout Win-Client 
 FUNCTION Fc-Logout RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/      
-     Fc-Token().
-     ASSIGN 
-        oClient = ClientBuilder:Build():Client
-        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)) /* URI("metodo", "dominio", "porta") */
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/      
+    Fc-Token().
+    ASSIGN 
+        oClient   = ClientBuilder:Build():Client
+        oUri      = URI:Parse(metodo + "://" + host + ":" + STRING(porta)) /* URI("metodo", "dominio", "porta") */
         oUri:Path = "/logout".
 
     oReq = RequestBuilder:Post(oUri)
@@ -1104,12 +1271,15 @@ FUNCTION Fc-Logout RETURNS LOGICAL
 
     oResp = oClient:Execute(oReq).
 
-    IF oResp:StatusCode = 200 THEN DO:
+    IF oResp:StatusCode = 200 THEN 
+    DO:
         MESSAGE "Logout efetuado." VIEW-AS ALERT-BOX INFO.
-        ASSIGN token = "".
+        ASSIGN 
+            token = "".
         RETURN TRUE.
     END.
-    ELSE DO:
+    ELSE 
+    DO:
         MESSAGE "Falha no logout. Código: " oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
         RETURN FALSE.
     END.
@@ -1121,61 +1291,38 @@ END FUNCTION.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Token Win-Client 
 FUNCTION Fc-Token RETURNS LOGICAL
-  (  ):
-/*------------------------------------------------------------------------------
- Purpose:
- Notes:
-------------------------------------------------------------------------------*/
-    DEFINE VARIABLE iSep1     AS INTEGER    NO-UNDO.
-    DEFINE VARIABLE iSep2     AS INTEGER    NO-UNDO.
-    DEFINE VARIABLE cPayloadB64 AS CHARACTER NO-UNDO.
-    DEFINE VARIABLE cPayloadB64Fixed AS CHARACTER NO-UNDO.
-    DEFINE VARIABLE mDecoded  AS MEMPTR     NO-UNDO.
-    DEFINE VARIABLE lcDecoded AS LONGCHAR   NO-UNDO.
-    DEFINE VARIABLE oJson     AS JsonObject NO-UNDO.
+    (  ):
+    /*------------------------------------------------------------------------------
+     Purpose:
+     Notes:
+    ------------------------------------------------------------------------------*/
+
+    DEFINE VARIABLE payload   AS CHARACTER NO-UNDO.
+    DEFINE VARIABLE iSep1     AS INTEGER NO-UNDO.
+    DEFINE VARIABLE iSep2     AS INTEGER NO-UNDO.
+    DEFINE VARIABLE cPayload  AS CHARACTER NO-UNDO.
+    DEFINE VARIABLE mDecoded  AS MEMPTR NO-UNDO.
+    DEFINE VARIABLE lcDecoded AS LONGCHAR NO-UNDO.
+    DEFINE VARIABLE id AS CHARACTER NO-UNDO.
+   
     
-
-    /* localiza as partes do token */
-    ASSIGN
-        iSep1 = INDEX(Token, ".")
-        iSep2 = INDEX(Token, ".", iSep1 + 1).
-
-    IF iSep1 = 0 OR iSep2 = 0 THEN DO:
-        MESSAGE "JWT inválido (formato incorreto)." VIEW-AS ALERT-BOX ERROR.
-        RETURN ?.
+    iSep1 = INDEX(token, ".").
+    iSep2 = INDEX(token, ".", iSep1 + 1).
+    cPayload = SUBSTRING(token, iSep1 + 1, iSep2 - iSep1 - 1).
+    
+    /* base64url -> base64 */
+    cPayload = REPLACE(REPLACE(cPayload, "-", "+"), "_", "/").
+    DO WHILE (LENGTH(cPayload) MOD 4) <> 0:
+        cPayload = cPayload + "=".
     END.
-
-    /* extrai o payload (meio do token) */
-    cPayloadB64 = SUBSTRING(Token, iSep1 + 1, iSep2 - iSep1 - 1).
-
-    /* ajusta base64url -> base64 normal */
-    cPayloadB64Fixed = REPLACE(cPayloadB64, "-", "+").
-    cPayloadB64Fixed = REPLACE(cPayloadB64Fixed, "_", "/").
-
-    DO WHILE (LENGTH(cPayloadB64Fixed) MODULO 4) <> 0:
-        cPayloadB64Fixed = cPayloadB64Fixed + "=".
-    END.
-
-    /* decodifica e converte */
-    mDecoded = BASE64-DECODE(cPayloadB64Fixed).
+    
+    /* decodifica */
+    mDecoded = BASE64-DECODE(cPayload).
     COPY-LOB FROM mDecoded TO lcDecoded.
-    SET-SIZE(mDecoded) = 0.
+    id = lcDecoded.
+    MESSAGE id
+    VIEW-AS ALERT-BOX.
 
-    /* grava o conteúdo num stream temporário */
-    OUTPUT STREAM sJson TO VALUE("jwt_payload.tmp") CONVERT TARGET "UTF-8".
-    //PUT STREAM sJson UNFORMATTED lcDecoded.
-    OUTPUT STREAM sJson CLOSE.
-
-    /* lê o JSON a partir do stream */
-    oJson = NEW JsonObject().
-    INPUT STREAM sJson FROM VALUE("jwt_payload.tmp") CONVERT SOURCE "UTF-8".
-   //oJson:Read(INPUT STREAM sJson).
-    INPUT STREAM sJson CLOSE.
-
-    /* limpa o arquivo temporário (opcional) */
-    OS-DELETE VALUE("jwt_payload.tmp") NO-ERROR.
-
-   //RETURN oJson.
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1191,14 +1338,8 @@ FUNCTION Fc-Trata RETURNS LOGICAL
 
     /** Abaixo regras de negocio e tratamentos necessarios **/
     for each ttcli no-lock:
-        disp    ttcli.name @ f-nome
-                ttcli.username @ f-Unome
-                ttcli.email + formatado @ f-email
-                ttcli.password @ f-senha
-                ttcli.phone @ f-telefone
-                ttcli.experience @ f-exp
-                ttcli.education @ f-Form
-        with frame frm-u.    
+        disp ttcli.name @ {&List-6}
+            with frame frm-u.    
     end.
 
 
