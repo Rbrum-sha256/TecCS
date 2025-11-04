@@ -42,9 +42,10 @@ USING OpenEdge.Net.HTTP.*.
 using OpenEdge.Net.URI.
 
 USING OpenEdge.Core.Memptr FROM PROPATH.
- USING Progress.Json.ObjectModel.*.
+USING Progress.Json.ObjectModel.*.
 using Progress.Json.ObjectModel.JsonObject.
 using Progress.Json.ObjectModel.JsonArray.
+using Progress.Json.ObjectModel.ObjectModelParser.
 USING OpenEdge.Net.HTTP.Filter.Writer.RequestWriterBuilder FROM PROPATH.
 using Progress.Lang.*.
 CREATE WIDGET-POOL.
@@ -79,7 +80,8 @@ DEFINE VARIABLE expira_em      AS INT64         NO-UNDO.
 DEFINE VARIABLE mensagem       AS CHARACTER     NO-UNDO.
 DEFINE VARIABLE codigo         AS CHARACTER     NO-UNDO.
 DEFINE VARIABLE detalhes       AS CHARACTER     NO-UNDO.
-      
+DEFINE VARIABLE user_id        AS CHARACTER     NO-UNDO.  
+    
 DEFINE VARIABLE i              AS INTEGER       NO-UNDO.
 DEFINE VARIABLE op-CRUD        AS integer       NO-UNDO.
 DEFINE VARIABLE formatado      AS CHARACTER     NO-UNDO initial "@Email.com".
@@ -106,10 +108,10 @@ DEFINE VARIABLE role           AS CHARACTER     NO-UNDO.
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
-&Scoped-define List-2 f-Unome 
-&Scoped-define List-4 f-exp 
-&Scoped-define List-6 f-Unome f-nome f-senha f-email f-telefone f-Form ~
-f-exp 
+&Scoped-define List-2 f-Unome f-Unome 
+&Scoped-define List-4 f-exp f-exp 
+&Scoped-define List-6 f-Unome f-Unome f-nome f-nome f-senha f-senha f-email ~
+f-email f-telefone f-telefone f-Form f-Form f-exp f-exp 
 
 /* _UIB-PREPROCESSOR-BLOCK-END */
 &ANALYZE-RESUME
@@ -195,223 +197,304 @@ DEFINE VARIABLE Win-Client AS WIDGET-HANDLE NO-UNDO.
 
 /* Menu Definitions                                                     */
 DEFINE SUB-MENU m_Navegation 
-       MENU-ITEM m_Home         LABEL "&Home"         
-       MENU-ITEM m_User         LABEL "&User"         
-       MENU-ITEM m_Login        LABEL "&Login"        
-       RULE
-       MENU-ITEM m_Logout       LABEL "&Logout"       .
+    MENU-ITEM m_Home         LABEL "&Home"         
+    MENU-ITEM m_User         LABEL "&User"         
+    MENU-ITEM m_Login        LABEL "&Login"        
+    RULE
+    MENU-ITEM m_Logout       LABEL "&Logout"       .
 
 DEFINE MENU MENU-BAR-C-Win MENUBAR
-       SUB-MENU  m_Navegation   LABEL "&Navegation"   
-       MENU-ITEM m_Conectar     LABEL "&Conectar"     .
+    SUB-MENU  m_Navegation   LABEL "&Navegation"   
+    MENU-ITEM m_Conectar     LABEL "&Conectar"     .
 
 
 /* Definitions of the field level widgets                               */
 DEFINE BUTTON bt-con 
-     LABEL "Conectar" 
-     SIZE 15 BY 1.14
-     FGCOLOR 9 FONT 3.
+    LABEL "Conectar" 
+    SIZE 15 BY 1.14
+    FGCOLOR 9 FONT 3.
 
 DEFINE VARIABLE f-host AS CHARACTER FORMAT "x(20)":U INITIAL "HOST" 
-     VIEW-AS FILL-IN 
-     SIZE 30 BY 1 TOOLTIP "host"
-     FGCOLOR 9 FONT 3 NO-UNDO.
+    VIEW-AS FILL-IN 
+    SIZE 30 BY 1 TOOLTIP "host"
+    FGCOLOR 9 FONT 3 NO-UNDO.
 
 DEFINE VARIABLE f-port AS CHARACTER FORMAT "x(10)":U INITIAL "PORT" 
-     VIEW-AS FILL-IN 
-     SIZE 30 BY 1
-     FGCOLOR 9 FONT 3 NO-UNDO.
+    VIEW-AS FILL-IN 
+    SIZE 30 BY 1
+    FGCOLOR 9 FONT 3 NO-UNDO.
 
 DEFINE VARIABLE f-role AS INTEGER 
-     VIEW-AS RADIO-SET HORIZONTAL
-     RADIO-BUTTONS 
-          "User", 1,
-"Company", 2
-     SIZE 26 BY 1.19 NO-UNDO.
+    VIEW-AS RADIO-SET HORIZONTAL
+    RADIO-BUTTONS 
+    "User", 1,
+    "Company", 2
+    SIZE 26 BY 1.19 NO-UNDO.
 
 DEFINE RECTANGLE RECT-8
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 60 BY 10.
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 60 BY 10.
 
-DEFINE BUTTON bt-L 
-     LABEL "Login" 
-     SIZE 15 BY 1.14.
+DEFINE BUTTON bt-C-2 
+    LABEL "bt-C" 
+    SIZE 8 BY 1.91.
 
-DEFINE BUTTON bt-VC 
-     LABEL "Cadastrar" 
-     SIZE 15 BY 1.14.
+DEFINE BUTTON bt-D-2 
+    LABEL "bt-D" 
+    SIZE 8 BY 1.91 TOOLTIP "Elimina Registro".
 
-DEFINE VARIABLE f-senhaL AS CHARACTER FORMAT "X(256)":U INITIAL "Senha" 
-     VIEW-AS FILL-IN 
-     SIZE 39 BY 1
-     FGCOLOR 9  NO-UNDO.
+DEFINE BUTTON bt-R-2 
+    LABEL "bt-R" 
+    SIZE 8 BY 1.91.
 
-DEFINE VARIABLE f-UnomeL AS CHARACTER FORMAT "X(30)":U INITIAL "Usuario" 
-     VIEW-AS FILL-IN 
-     SIZE 39 BY 1
-     FGCOLOR 9  NO-UNDO.
+DEFINE BUTTON bt-U-2 
+    LABEL "bt-U" 
+    SIZE 8 BY 1.91.
 
-DEFINE RECTANGLE RECT-10
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 52 BY 7.38.
+DEFINE VARIABLE f-email    AS CHARACTER FORMAT "X(30)":U 
+    LABEL "E-mail" 
+    VIEW-AS FILL-IN 
+    SIZE 39 BY 1
+    FGCOLOR 9 NO-UNDO.
 
-DEFINE VARIABLE fi-host AS CHARACTER FORMAT "X(15)":U 
-     LABEL "host" 
-      VIEW-AS TEXT 
-     SIZE 30.2 BY .62
-     FGCOLOR 10  NO-UNDO.
+DEFINE VARIABLE f-exp      AS CHARACTER FORMAT "X(256)":U 
+    LABEL "Experiencia" 
+    VIEW-AS FILL-IN 
+    SIZE 59.8 BY 2.14
+    FGCOLOR 9 NO-UNDO.
 
-DEFINE VARIABLE fi-port AS CHARACTER FORMAT "X(20)":U 
-     LABEL "port" 
-      VIEW-AS TEXT 
-     SIZE 20 BY .62
-     FGCOLOR 10  NO-UNDO.
+DEFINE VARIABLE f-Form     AS CHARACTER FORMAT "X(256)":U 
+    LABEL "Formacao" 
+    VIEW-AS FILL-IN 
+    SIZE 44 BY .95
+    FGCOLOR 9 NO-UNDO.
 
-DEFINE VARIABLE fi-role AS CHARACTER FORMAT "X(20)":U 
-     LABEL "role" 
-      VIEW-AS TEXT 
-     SIZE 20 BY .62
-     FGCOLOR 10  NO-UNDO.
+DEFINE VARIABLE f-nome     AS CHARACTER FORMAT "X(256)":U 
+    LABEL "Nome" 
+    VIEW-AS FILL-IN 
+    SIZE 42 BY 1
+    FGCOLOR 9 NO-UNDO.
 
-DEFINE BUTTON bt-C 
-     LABEL "bt-C" 
-     SIZE 8 BY 1.91.
-
-DEFINE BUTTON bt-D 
-     LABEL "bt-D" 
-     SIZE 8 BY 1.91 TOOLTIP "Elimina Registro".
-
-DEFINE BUTTON bt-R 
-     LABEL "bt-R" 
-     SIZE 8 BY 1.91.
-
-DEFINE BUTTON bt-U 
-     LABEL "bt-U" 
-     SIZE 8 BY 1.91.
-
-DEFINE VARIABLE f-email AS CHARACTER FORMAT "X(30)":U 
-     LABEL "E-mail" 
-     VIEW-AS FILL-IN 
-     SIZE 39 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-exp AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Experiencia" 
-     VIEW-AS FILL-IN 
-     SIZE 59.8 BY 2.14
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-Form AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Formacao" 
-     VIEW-AS FILL-IN 
-     SIZE 44 BY .95
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-nome AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Nome" 
-     VIEW-AS FILL-IN 
-     SIZE 42 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-senha AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Senha" 
-     VIEW-AS FILL-IN 
-     SIZE 42 BY 1
-     FGCOLOR 9  NO-UNDO.
+DEFINE VARIABLE f-senha    AS CHARACTER FORMAT "X(256)":U 
+    LABEL "Senha" 
+    VIEW-AS FILL-IN 
+    SIZE 42 BY 1
+    FGCOLOR 9 NO-UNDO.
 
 DEFINE VARIABLE f-telefone AS CHARACTER FORMAT "+55(x(2)) 9 x(4)-x(4)":U 
-     LABEL "Telefone" 
-     VIEW-AS FILL-IN 
-     SIZE 31 BY 1
-     FGCOLOR 9  NO-UNDO.
+    LABEL "Telefone" 
+    VIEW-AS FILL-IN 
+    SIZE 31 BY 1
+    FGCOLOR 9 NO-UNDO.
 
-DEFINE VARIABLE f-Unome AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Nome de Usuario" 
-     VIEW-AS FILL-IN 
-     SIZE 53.4 BY 1
-     FGCOLOR 9  NO-UNDO.
+DEFINE VARIABLE f-Unome    AS CHARACTER FORMAT "X(256)":U 
+    LABEL "Nome de Usuario" 
+    VIEW-AS FILL-IN 
+    SIZE 53.4 BY 1
+    FGCOLOR 9 NO-UNDO.
+
+DEFINE RECTANGLE RECT-11
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 96 BY 4.05.
+
+DEFINE RECTANGLE RECT-12
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 96 BY 2.86.
+
+DEFINE RECTANGLE RECT-13
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 101 BY 2.62.
+
+DEFINE RECTANGLE RECT-9
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 96 BY 4.29.
+
+DEFINE BUTTON bt-L 
+    LABEL "Login" 
+    SIZE 15 BY 1.14.
+
+DEFINE BUTTON bt-VC 
+    LABEL "Cadastrar" 
+    SIZE 15 BY 1.14.
+
+DEFINE VARIABLE f-senhaL AS CHARACTER FORMAT "X(256)":U INITIAL "Senha" 
+    VIEW-AS FILL-IN 
+    SIZE 39 BY 1
+    FGCOLOR 9 NO-UNDO.
+
+DEFINE VARIABLE f-UnomeL AS CHARACTER FORMAT "X(30)":U INITIAL "Usuario" 
+    VIEW-AS FILL-IN 
+    SIZE 39 BY 1
+    FGCOLOR 9 NO-UNDO.
+
+DEFINE RECTANGLE RECT-10
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 52 BY 7.38.
+
+DEFINE VARIABLE fi-host AS CHARACTER FORMAT "X(15)":U 
+    LABEL "host" 
+    VIEW-AS TEXT 
+    SIZE 30.2 BY .62
+    FGCOLOR 10 NO-UNDO.
+
+DEFINE VARIABLE fi-port AS CHARACTER FORMAT "X(20)":U 
+    LABEL "port" 
+    VIEW-AS TEXT 
+    SIZE 20 BY .62
+    FGCOLOR 10 NO-UNDO.
+
+DEFINE VARIABLE fi-role AS CHARACTER FORMAT "X(20)":U 
+    LABEL "role" 
+    VIEW-AS TEXT 
+    SIZE 20 BY .62
+    FGCOLOR 10 NO-UNDO.
+
+DEFINE BUTTON bt-C 
+    LABEL "bt-C" 
+    SIZE 8 BY 1.91.
+
+DEFINE BUTTON bt-D 
+    LABEL "bt-D" 
+    SIZE 8 BY 1.91 TOOLTIP "Elimina Registro".
+
+DEFINE BUTTON bt-R 
+    LABEL "bt-R" 
+    SIZE 8 BY 1.91.
+
+DEFINE BUTTON bt-U 
+    LABEL "bt-U" 
+    SIZE 8 BY 1.91.
 
 DEFINE RECTANGLE RECT-4
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 96 BY 4.29.
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 96 BY 4.29.
 
 DEFINE RECTANGLE RECT-5
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 96 BY 4.05.
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 96 BY 4.05.
 
 DEFINE RECTANGLE RECT-6
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 96 BY 2.86.
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 96 BY 2.86.
 
 DEFINE RECTANGLE RECT-7
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 101 BY 2.62.
+    EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+    SIZE 101 BY 2.62.
 
 
 /* ************************  Frame Definitions  *********************** */
 
 DEFINE FRAME frm-rodape
-     fi-host AT ROW 1.71 COL 9.8 COLON-ALIGNED WIDGET-ID 2
-     fi-port AT ROW 2.81 COL 9.8 COLON-ALIGNED WIDGET-ID 4
-     fi-role AT ROW 3.86 COL 9.8 COLON-ALIGNED WIDGET-ID 6
+    fi-host AT ROW 1.71 COL 9.8 COLON-ALIGNED WIDGET-ID 2
+    fi-port AT ROW 2.81 COL 9.8 COLON-ALIGNED WIDGET-ID 4
+    fi-role AT ROW 3.86 COL 9.8 COLON-ALIGNED WIDGET-ID 6
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 18.14
-         SIZE 101.6 BY 3.86
-         FONT 3 WIDGET-ID 700.
+    SIDE-LABELS NO-UNDERLINE THREE-D 
+    AT COLUMN 1 ROW 18.14
+    SIZE 101.6 BY 3.86
+    FONT 3 WIDGET-ID 700.
 
 DEFINE FRAME frm-home
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 1
-         SIZE 101.6 BY 17.14
-         FONT 3 WIDGET-ID 400.
-
-DEFINE FRAME frm-L
-     f-UnomeL AT ROW 6 COL 31.8 NO-LABEL WIDGET-ID 10
-     f-senhaL AT ROW 7.43 COL 29.8 COLON-ALIGNED NO-LABEL WIDGET-ID 8
-     bt-L AT ROW 9.1 COL 31.8 WIDGET-ID 20
-     bt-VC AT ROW 9.1 COL 55.8 WIDGET-ID 22
-     RECT-10 AT ROW 4.57 COL 25 WIDGET-ID 24
-    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 1
-         SIZE 101 BY 16
-         FONT 3 WIDGET-ID 500.
+    SIDE-LABELS NO-UNDERLINE THREE-D 
+    AT COLUMN 1 ROW 1
+    SIZE 101.6 BY 17.14
+    FONT 3 WIDGET-ID 400.
 
 DEFINE FRAME frm-C
-     f-host AT ROW 7.43 COL 34 COLON-ALIGNED NO-LABEL WIDGET-ID 4
-     f-port AT ROW 8.86 COL 34 COLON-ALIGNED NO-LABEL WIDGET-ID 6
-     f-role AT ROW 10.29 COL 38 NO-LABEL WIDGET-ID 12
-     bt-con AT ROW 12.19 COL 43.6 WIDGET-ID 8
-     RECT-8 AT ROW 5.29 COL 21 WIDGET-ID 10
+    f-host AT ROW 7.43 COL 34 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+    f-port AT ROW 8.86 COL 34 COLON-ALIGNED NO-LABEL WIDGET-ID 6
+    f-role AT ROW 10.29 COL 38 NO-LABEL WIDGET-ID 12
+    bt-con AT ROW 12.19 COL 43.6 WIDGET-ID 8
+    RECT-8 AT ROW 5.29 COL 21 WIDGET-ID 10
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 1
-         SIZE 101 BY 15.95
-         FONT 3 WIDGET-ID 600.
+    SIDE-LABELS NO-UNDERLINE THREE-D 
+    AT COLUMN 1 ROW 1
+    SIZE 101 BY 15.95
+    FONT 3 WIDGET-ID 600.
+
+DEFINE FRAME frm-L
+    f-UnomeL AT ROW 6 COL 31.8 NO-LABEL WIDGET-ID 10
+    f-senhaL AT ROW 7.43 COL 29.8 COLON-ALIGNED NO-LABEL WIDGET-ID 8
+    bt-L AT ROW 9.1 COL 31.8 WIDGET-ID 20
+    bt-VC AT ROW 9.1 COL 55.8 WIDGET-ID 22
+    RECT-10 AT ROW 4.57 COL 25 WIDGET-ID 24
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+    SIDE-LABELS NO-UNDERLINE THREE-D 
+    AT COLUMN 1 ROW 1
+    SIZE 101 BY 16
+    FONT 3 WIDGET-ID 500.
 
 DEFINE FRAME frm-U
-     bt-C AT ROW 1.24 COL 60.4 WIDGET-ID 32
-     bt-R AT ROW 1.24 COL 69 WIDGET-ID 30
-     bt-U AT ROW 1.24 COL 77.6 WIDGET-ID 2
-     bt-D AT ROW 1.24 COL 86.2 WIDGET-ID 28
-     f-Unome AT ROW 5.38 COL 31 COLON-ALIGNED WIDGET-ID 6
-     f-nome AT ROW 6.48 COL 31 COLON-ALIGNED WIDGET-ID 4
-     f-senha AT ROW 7.52 COL 31 COLON-ALIGNED WIDGET-ID 8
-     f-email AT ROW 9.43 COL 31 COLON-ALIGNED WIDGET-ID 10
-     f-telefone AT ROW 10.62 COL 31 COLON-ALIGNED WIDGET-ID 12
-     f-Form AT ROW 12.38 COL 31 COLON-ALIGNED WIDGET-ID 14
-     f-exp AT ROW 13.57 COL 31 COLON-ALIGNED WIDGET-ID 16
-     RECT-4 AT ROW 4.81 COL 4 WIDGET-ID 34
-     RECT-5 AT ROW 11.95 COL 4 WIDGET-ID 36
-     RECT-6 AT ROW 9.1 COL 4 WIDGET-ID 38
-     RECT-7 AT ROW 1 COL 1.2 WIDGET-ID 40
+    bt-C AT ROW 1.24 COL 60.4 WIDGET-ID 32
+    bt-R AT ROW 1.24 COL 69 WIDGET-ID 30
+    bt-U AT ROW 1.24 COL 77.6 WIDGET-ID 2
+    bt-D AT ROW 1.24 COL 86.2 WIDGET-ID 28
+    f-Unome AT ROW 5.38 COL 31 COLON-ALIGNED WIDGET-ID 6
+    LABEL "Nome de Usuario" FORMAT "X(256)":U
+    VIEW-AS FILL-IN 
+    SIZE 53.4 BY 1
+    FGCOLOR 9 
+    f-nome AT ROW 6.48 COL 31 COLON-ALIGNED WIDGET-ID 4
+    LABEL "Nome" FORMAT "X(256)":U
+    VIEW-AS FILL-IN 
+    SIZE 42 BY 1
+    FGCOLOR 9 
+    f-senha AT ROW 7.52 COL 31 COLON-ALIGNED WIDGET-ID 8
+    LABEL "Senha" FORMAT "X(256)":U
+    VIEW-AS FILL-IN 
+    SIZE 42 BY 1
+    FGCOLOR 9 
+    f-email AT ROW 9.43 COL 31 COLON-ALIGNED WIDGET-ID 10
+    LABEL "E-mail" FORMAT "X(30)":U
+    VIEW-AS FILL-IN 
+    SIZE 39 BY 1
+    FGCOLOR 9 
+    f-telefone AT ROW 10.62 COL 31 COLON-ALIGNED WIDGET-ID 12
+    LABEL "Telefone" FORMAT "+55(x(2)) 9 x(4)-x(4)":U
+    VIEW-AS FILL-IN 
+    SIZE 31 BY 1
+    FGCOLOR 9 
+    f-Form AT ROW 12.38 COL 31 COLON-ALIGNED WIDGET-ID 14
+    LABEL "Formacao" FORMAT "X(256)":U
+    VIEW-AS FILL-IN 
+    SIZE 44 BY .95
+    FGCOLOR 9 
+    f-exp AT ROW 13.57 COL 31 COLON-ALIGNED WIDGET-ID 16
+    LABEL "Experiencia" FORMAT "X(256)":U
+    VIEW-AS FILL-IN 
+    SIZE 59.8 BY 2.14
+    FGCOLOR 9 
+    RECT-4 AT ROW 4.81 COL 4 WIDGET-ID 34
+    RECT-5 AT ROW 11.95 COL 4 WIDGET-ID 36
+    RECT-6 AT ROW 9.1 COL 4 WIDGET-ID 38
+    RECT-7 AT ROW 1 COL 1.2 WIDGET-ID 40
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
-         SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 1
-         SIZE 102 BY 17.1
-         FONT 3 WIDGET-ID 300.
+    SIDE-LABELS NO-UNDERLINE THREE-D 
+    AT COLUMN 1 ROW 1
+    SIZE 102 BY 17.1
+    FONT 3 WIDGET-ID 300.
+
+DEFINE FRAME frm-E
+    bt-C-2 AT ROW 1.24 COL 60.4 WIDGET-ID 32
+    bt-R-2 AT ROW 1.24 COL 69 WIDGET-ID 30
+    bt-U-2 AT ROW 1.24 COL 77.6 WIDGET-ID 2
+    bt-D-2 AT ROW 1.24 COL 86.2 WIDGET-ID 28
+    f-Unome AT ROW 5.38 COL 31 COLON-ALIGNED WIDGET-ID 6
+    f-nome AT ROW 6.48 COL 31 COLON-ALIGNED WIDGET-ID 4
+    f-senha AT ROW 7.52 COL 31 COLON-ALIGNED WIDGET-ID 8
+    f-email AT ROW 9.43 COL 31 COLON-ALIGNED WIDGET-ID 10
+    f-telefone AT ROW 10.62 COL 31 COLON-ALIGNED WIDGET-ID 12
+    f-Form AT ROW 12.38 COL 31 COLON-ALIGNED WIDGET-ID 14
+    f-exp AT ROW 13.57 COL 31 COLON-ALIGNED WIDGET-ID 16
+    RECT-9 AT ROW 4.81 COL 4 WIDGET-ID 34
+    RECT-11 AT ROW 11.95 COL 4 WIDGET-ID 36
+    RECT-12 AT ROW 9.1 COL 4 WIDGET-ID 38
+    RECT-13 AT ROW 1 COL 1.2 WIDGET-ID 40
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+    SIDE-LABELS NO-UNDERLINE THREE-D 
+    AT COLUMN 1 ROW 1
+    SIZE 102.2 BY 17.14 WIDGET-ID 800.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -428,28 +511,29 @@ DEFINE FRAME frm-U
 
 &ANALYZE-SUSPEND _CREATE-WINDOW
 IF SESSION:DISPLAY-TYPE = "GUI":U THEN
-  CREATE WINDOW Win-Client ASSIGN
-         HIDDEN             = YES
-         TITLE              = "Client"
-         HEIGHT             = 21.1
-         WIDTH              = 101.8
-         MAX-HEIGHT         = 22.91
-         MAX-WIDTH          = 190.6
-         VIRTUAL-HEIGHT     = 22.91
-         VIRTUAL-WIDTH      = 190.6
-         RESIZE             = yes
-         SCROLL-BARS        = no
-         STATUS-AREA        = no
-         BGCOLOR            = ?
-         FGCOLOR            = ?
-         KEEP-FRAME-Z-ORDER = yes
-         THREE-D            = yes
-         FONT               = 3
-         MESSAGE-AREA       = no
-         SENSITIVE          = yes.
+    CREATE WINDOW Win-Client ASSIGN
+        HIDDEN             = YES
+        TITLE              = "Client"
+        HEIGHT             = 21.1
+        WIDTH              = 101
+        MAX-HEIGHT         = 22.91
+        MAX-WIDTH          = 190.6
+        VIRTUAL-HEIGHT     = 22.91
+        VIRTUAL-WIDTH      = 190.6
+        RESIZE             = yes
+        SCROLL-BARS        = no
+        STATUS-AREA        = no
+        BGCOLOR            = ?
+        FGCOLOR            = ?
+        KEEP-FRAME-Z-ORDER = yes
+        THREE-D            = yes
+        FONT               = 3
+        MESSAGE-AREA       = no
+        SENSITIVE          = yes.
 ELSE {&WINDOW-NAME} = CURRENT-WINDOW.
 
-ASSIGN {&WINDOW-NAME}:MENUBAR    = MENU MENU-BAR-C-Win:HANDLE.
+ASSIGN 
+    {&WINDOW-NAME}:MENUBAR = MENU MENU-BAR-C-Win:HANDLE.
 /* END WINDOW DEFINITION                                                */
 &ANALYZE-RESUME
 
@@ -461,18 +545,36 @@ ASSIGN {&WINDOW-NAME}:MENUBAR    = MENU MENU-BAR-C-Win:HANDLE.
 /* SETTINGS FOR WINDOW Win-Client
   VISIBLE,,RUN-PERSISTENT                                               */
 /* REPARENT FRAME */
-ASSIGN FRAME frm-C:FRAME = FRAME frm-home:HANDLE
-       FRAME frm-L:FRAME = FRAME frm-home:HANDLE.
+ASSIGN 
+    FRAME frm-C:FRAME = FRAME frm-home:HANDLE
+    FRAME frm-L:FRAME = FRAME frm-home:HANDLE.
 
 /* SETTINGS FOR FRAME frm-C
                                                                         */
+/* SETTINGS FOR FRAME frm-E
+                                                                        */
+/* SETTINGS FOR FILL-IN f-email IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-exp IN FRAME frm-E
+   4 6                                                                  */
+/* SETTINGS FOR FILL-IN f-Form IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-nome IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-senha IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-telefone IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-Unome IN FRAME frm-E
+   2 6                                                                  */
 /* SETTINGS FOR FRAME frm-home
    FRAME-NAME                                                           */
 
 DEFINE VARIABLE XXTABVALXX AS LOGICAL NO-UNDO.
 
-ASSIGN XXTABVALXX = FRAME frm-C:MOVE-BEFORE-TAB-ITEM (FRAME frm-L:HANDLE)
-/* END-ASSIGN-TABS */.
+ASSIGN 
+    XXTABVALXX = FRAME frm-L:MOVE-BEFORE-TAB-ITEM (FRAME frm-C:HANDLE)
+    /* END-ASSIGN-TABS */.
 
 /* SETTINGS FOR FRAME frm-L
                                                                         */
@@ -481,13 +583,13 @@ ASSIGN XXTABVALXX = FRAME frm-C:MOVE-BEFORE-TAB-ITEM (FRAME frm-L:HANDLE)
 /* SETTINGS FOR FRAME frm-rodape
                                                                         */
 ASSIGN 
-       fi-host:READ-ONLY IN FRAME frm-rodape        = TRUE.
+    fi-host:READ-ONLY IN FRAME frm-rodape = TRUE.
 
 ASSIGN 
-       fi-port:READ-ONLY IN FRAME frm-rodape        = TRUE.
+    fi-port:READ-ONLY IN FRAME frm-rodape = TRUE.
 
 ASSIGN 
-       fi-role:READ-ONLY IN FRAME frm-rodape        = TRUE.
+    fi-role:READ-ONLY IN FRAME frm-rodape = TRUE.
 
 /* SETTINGS FOR FRAME frm-U
                                                                         */
@@ -506,7 +608,7 @@ ASSIGN
 /* SETTINGS FOR FILL-IN f-Unome IN FRAME frm-U
    2 6                                                                  */
 IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(Win-Client)
-THEN Win-Client:HIDDEN = yes.
+    THEN Win-Client:HIDDEN = yes.
 
 /* _RUN-TIME-ATTRIBUTES-END */
 &ANALYZE-RESUME
@@ -520,7 +622,7 @@ THEN Win-Client:HIDDEN = yes.
 &Scoped-define SELF-NAME Win-Client
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL Win-Client Win-Client
 ON END-ERROR OF Win-Client /* Client */
-OR ENDKEY OF {&WINDOW-NAME} ANYWHERE 
+    OR ENDKEY OF {&WINDOW-NAME} ANYWHERE 
     DO:
         /* This case occurs when the user presses the "Esc" key.
            In a persistently run window, just ignore this.  If we did not, the
@@ -534,7 +636,7 @@ OR ENDKEY OF {&WINDOW-NAME} ANYWHERE
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL Win-Client Win-Client
 ON WINDOW-CLOSE OF Win-Client /* Client */
-DO:
+    DO:
         /* This event will close the window and terminate the procedure.  */
         APPLY "CLOSE":U TO THIS-PROCEDURE.
         RETURN NO-APPLY.
@@ -548,7 +650,22 @@ DO:
 &Scoped-define SELF-NAME bt-C
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-C Win-Client
 ON CHOOSE OF bt-C IN FRAME frm-U /* bt-C */
-DO:
+    DO:
+        assign 
+            op-CRUD = 3.
+        Fc-Cadastrar().
+     
+    END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define FRAME-NAME frm-E
+&Scoped-define SELF-NAME bt-C-2
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-C-2 Win-Client
+ON CHOOSE OF bt-C-2 IN FRAME frm-E /* bt-C */
+    DO:
         assign 
             op-CRUD = 3.
         Fc-Cadastrar().
@@ -563,7 +680,7 @@ DO:
 &Scoped-define SELF-NAME bt-con
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-con Win-Client
 ON CHOOSE OF bt-con IN FRAME frm-C /* Conectar */
-DO:
+    DO:
         Fc-Conectar().
     END.
 
@@ -575,7 +692,21 @@ DO:
 &Scoped-define SELF-NAME bt-D
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-D Win-Client
 ON CHOOSE OF bt-D IN FRAME frm-U /* bt-D */
-DO:
+    DO:
+        assign 
+            op-CRUD = 4.
+        Fc-Apagar(). 
+    END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define FRAME-NAME frm-E
+&Scoped-define SELF-NAME bt-D-2
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-D-2 Win-Client
+ON CHOOSE OF bt-D-2 IN FRAME frm-E /* bt-D */
+    DO:
         assign 
             op-CRUD = 4.
         Fc-Apagar(). 
@@ -589,7 +720,7 @@ DO:
 &Scoped-define SELF-NAME bt-L
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-L Win-Client
 ON CHOOSE OF bt-L IN FRAME frm-L /* Login */
-DO:
+    DO:
         assign 
             op-CRUD = 5. 
         Fc-Login().  
@@ -603,7 +734,7 @@ DO:
 &Scoped-define SELF-NAME bt-R
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-R Win-Client
 ON CHOOSE OF bt-R IN FRAME frm-U /* bt-R */
-DO:
+    DO:
         assign 
             op-CRUD = 2.
         Fc-Ler().
@@ -614,10 +745,41 @@ DO:
 &ANALYZE-RESUME
 
 
+&Scoped-define FRAME-NAME frm-E
+&Scoped-define SELF-NAME bt-R-2
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-R-2 Win-Client
+ON CHOOSE OF bt-R-2 IN FRAME frm-E /* bt-R */
+    DO:
+        assign 
+            op-CRUD = 2.
+        Fc-Ler().
+       
+    END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define FRAME-NAME frm-U
 &Scoped-define SELF-NAME bt-U
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-U Win-Client
 ON CHOOSE OF bt-U IN FRAME frm-U /* bt-U */
-DO:
+    DO:
+        assign 
+            op-CRUD = 3.
+        Fc-Cadastrar().
+     
+    END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define FRAME-NAME frm-E
+&Scoped-define SELF-NAME bt-U-2
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-U-2 Win-Client
+ON CHOOSE OF bt-U-2 IN FRAME frm-E /* bt-U */
+    DO:
         assign 
             op-CRUD = 3.
         Fc-Cadastrar().
@@ -632,7 +794,7 @@ DO:
 &Scoped-define SELF-NAME bt-VC
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-VC Win-Client
 ON CHOOSE OF bt-VC IN FRAME frm-L /* Cadastrar */
-DO:
+    DO:
         assign 
             op-CRUD = 1. 
         Fc-Cadastrar().
@@ -648,7 +810,7 @@ DO:
 &Scoped-define SELF-NAME m_Conectar
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Conectar Win-Client
 ON CHOOSE OF MENU-ITEM m_Conectar /* Conectar */
-DO:
+    DO:
         frame frm-C:hidden = false.
         frame frm-home:hidden = false.
    
@@ -662,7 +824,7 @@ DO:
 &Scoped-define SELF-NAME m_Login
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Login Win-Client
 ON CHOOSE OF MENU-ITEM m_Login /* Login */
-DO:
+    DO:
         frame frm-L:hidden = false.
         frame frm-u:hidden = true.
         frame frm-C:hidden = true.
@@ -676,7 +838,7 @@ DO:
 &Scoped-define SELF-NAME m_Logout
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Logout Win-Client
 ON CHOOSE OF MENU-ITEM m_Logout /* Logout */
-DO:
+    DO:
         assign 
             op-CRUD = 6.
         Fc-Logout().
@@ -691,7 +853,7 @@ DO:
 &Scoped-define SELF-NAME m_User
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_User Win-Client
 ON CHOOSE OF MENU-ITEM m_User /* User */
-DO:
+    DO:
         frame frm-u:hidden = false.    
         frame frm-home:hidden = true.
         frame frm-L:hidden = true.
@@ -744,18 +906,18 @@ END.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE disable_UI Win-Client  _DEFAULT-DISABLE
 PROCEDURE disable_UI :
-/*------------------------------------------------------------------------------
-  Purpose:     DISABLE the User Interface
-  Parameters:  <none>
-  Notes:       Here we clean-up the user-interface by deleting
-               dynamic widgets we have created and/or hide 
-               frames.  This procedure is usually called when
-               we are ready to "clean-up" after running.
-------------------------------------------------------------------------------*/
-  /* Delete the WINDOW we created */
-  IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(Win-Client)
-  THEN DELETE WIDGET Win-Client.
-  IF THIS-PROCEDURE:PERSISTENT THEN DELETE PROCEDURE THIS-PROCEDURE.
+    /*------------------------------------------------------------------------------
+      Purpose:     DISABLE the User Interface
+      Parameters:  <none>
+      Notes:       Here we clean-up the user-interface by deleting
+                   dynamic widgets we have created and/or hide 
+                   frames.  This procedure is usually called when
+                   we are ready to "clean-up" after running.
+    ------------------------------------------------------------------------------*/
+    /* Delete the WINDOW we created */
+    IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(Win-Client)
+        THEN DELETE WIDGET Win-Client.
+    IF THIS-PROCEDURE:PERSISTENT THEN DELETE PROCEDURE THIS-PROCEDURE.
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
@@ -763,39 +925,45 @@ END PROCEDURE.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE enable_UI Win-Client  _DEFAULT-ENABLE
 PROCEDURE enable_UI :
-/*------------------------------------------------------------------------------
-  Purpose:     ENABLE the User Interface
-  Parameters:  <none>
-  Notes:       Here we display/view/enable the widgets in the
-               user-interface.  In addition, OPEN all queries
-               associated with each FRAME and BROWSE.
-               These statements here are based on the "Other 
-               Settings" section of the widget Property Sheets.
-------------------------------------------------------------------------------*/
-  DISPLAY f-host f-port f-role 
-      WITH FRAME frm-C IN WINDOW Win-Client.
-  ENABLE RECT-8 f-host f-port f-role bt-con 
-      WITH FRAME frm-C IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-C}
-  VIEW FRAME frm-home IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-home}
-  DISPLAY f-UnomeL f-senhaL 
-      WITH FRAME frm-L IN WINDOW Win-Client.
-  ENABLE RECT-10 f-UnomeL f-senhaL bt-L bt-VC 
-      WITH FRAME frm-L IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-L}
-  DISPLAY f-Unome f-nome f-senha f-email f-telefone f-Form f-exp 
-      WITH FRAME frm-U IN WINDOW Win-Client.
-  ENABLE RECT-4 RECT-5 RECT-6 RECT-7 bt-C bt-R bt-U bt-D f-Unome f-nome f-senha 
-         f-email f-telefone f-Form f-exp 
-      WITH FRAME frm-U IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-U}
-  DISPLAY fi-host fi-port fi-role 
-      WITH FRAME frm-rodape IN WINDOW Win-Client.
-  ENABLE fi-host fi-port fi-role 
-      WITH FRAME frm-rodape IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-rodape}
-  VIEW Win-Client.
+    /*------------------------------------------------------------------------------
+      Purpose:     ENABLE the User Interface
+      Parameters:  <none>
+      Notes:       Here we display/view/enable the widgets in the
+                   user-interface.  In addition, OPEN all queries
+                   associated with each FRAME and BROWSE.
+                   These statements here are based on the "Other 
+                   Settings" section of the widget Property Sheets.
+    ------------------------------------------------------------------------------*/
+    DISPLAY f-host f-port f-role 
+        WITH FRAME frm-C IN WINDOW Win-Client.
+    ENABLE RECT-8 f-host f-port f-role bt-con 
+        WITH FRAME frm-C IN WINDOW Win-Client.
+    {&OPEN-BROWSERS-IN-QUERY-frm-C}
+    DISPLAY f-Unome f-nome f-senha f-email f-telefone f-Form f-exp 
+        WITH FRAME frm-E IN WINDOW Win-Client.
+    ENABLE RECT-9 RECT-11 RECT-12 RECT-13 bt-C-2 bt-R-2 bt-U-2 bt-D-2 f-Unome 
+        f-nome f-senha f-email f-telefone f-Form f-exp 
+        WITH FRAME frm-E IN WINDOW Win-Client.
+    {&OPEN-BROWSERS-IN-QUERY-frm-E}
+    VIEW FRAME frm-home IN WINDOW Win-Client.
+    {&OPEN-BROWSERS-IN-QUERY-frm-home}
+    DISPLAY f-UnomeL f-senhaL 
+        WITH FRAME frm-L IN WINDOW Win-Client.
+    ENABLE RECT-10 f-UnomeL f-senhaL bt-L bt-VC 
+        WITH FRAME frm-L IN WINDOW Win-Client.
+    {&OPEN-BROWSERS-IN-QUERY-frm-L}
+    DISPLAY f-Unome f-nome f-senha f-email f-telefone f-Form f-exp 
+        WITH FRAME frm-U IN WINDOW Win-Client.
+    ENABLE RECT-4 RECT-5 RECT-6 RECT-7 bt-C bt-R bt-U bt-D f-Unome f-nome f-senha 
+        f-email f-telefone f-Form f-exp 
+        WITH FRAME frm-U IN WINDOW Win-Client.
+    {&OPEN-BROWSERS-IN-QUERY-frm-U}
+    DISPLAY fi-host fi-port fi-role 
+        WITH FRAME frm-rodape IN WINDOW Win-Client.
+    ENABLE fi-host fi-port fi-role 
+        WITH FRAME frm-rodape IN WINDOW Win-Client.
+    {&OPEN-BROWSERS-IN-QUERY-frm-rodape}
+    VIEW Win-Client.
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
@@ -803,13 +971,13 @@ END PROCEDURE.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE mostraregistro Win-Client 
 PROCEDURE mostraregistro :
-/*------------------------------------------------------------------------------
-     Purpose:
-     Notes:
-    ------------------------------------------------------------------------------*/
+    /*------------------------------------------------------------------------------
+         Purpose:
+         Notes:
+        ------------------------------------------------------------------------------*/
     
     Fc-Trata().
-    apply "entry" to {&List-4} in frame frm-u.
+    
 
 END PROCEDURE.
 
@@ -818,10 +986,10 @@ END PROCEDURE.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE mudadeoperacao Win-Client 
 PROCEDURE mudadeoperacao :
-/*------------------------------------------------------------------------------
-     Purpose:
-     Notes:
-    ------------------------------------------------------------------------------*/  
+    /*------------------------------------------------------------------------------
+         Purpose:
+         Notes:
+        ------------------------------------------------------------------------------*/  
     case op-CRUD:
         when 1 then 
             do.
@@ -834,8 +1002,8 @@ PROCEDURE mudadeoperacao :
                 /* limpara a tela */
                 clear frame frm-u.
   
-                /* posiciona o cursor no primeiro campo da chave */
-                apply "entry" to {&List-2} in frame frm-u.
+            /* posiciona o cursor no primeiro campo da chave */
+                //apply "entry" to {&List-2} in frame frm-u.
 
             end.
         when 3 or 
@@ -847,10 +1015,10 @@ PROCEDURE mudadeoperacao :
                     bt-U:sensitive in frame frm-u = yes
                     bt-D:sensitive in frame frm-u = yes.
 
-                /* desabilita os campos da chave */ 
+            /* desabilita os campos da chave */ 
                    
-                /* posiciona o cursor no primeiro campo alteravel */
-                apply "entry" to {&List-4} in frame frm-u.
+            /* posiciona o cursor no primeiro campo alteravel */
+               // apply "entry" to {&List-4} in frame frm-u.
 
             end.
   
@@ -875,7 +1043,7 @@ FUNCTION Fc-Apagar RETURNS LOGICAL
     ASSIGN 
         oClient = ClientBuilder:Build():Client
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-    oUri:Path = "/users/".
+    oUri:Path = "/users/user_id".
 
     oReq = RequestBuilder:Delete(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -883,40 +1051,41 @@ FUNCTION Fc-Apagar RETURNS LOGICAL
               :Request.
 
     oResp = oClient:Execute(oReq).
-
+    
     IF oResp:StatusCode = 200 THEN 
-        DO:
-            assign 
-                    mensagem = oJsonRespObj:GetCharacter("message")    
-                . 
-        END.
+    DO:
+        assign 
+            mensagem = oJsonRespObj:GetCharacter("message").
+        MESSAGE "Exclusão de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
+        RETURN TRUE.
+    END.
     IF oResp:StatusCode eq 401 THEN 
-        do:
-           
-            assign 
-                mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
-        end.
-        IF oResp:StatusCode eq 403 THEN 
-        do:
-          
-            assign 
-                mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
-        end.
-        IF oResp:StatusCode eq 404 THEN 
-        do:
-          
-            assign 
-                mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
-        end.
+    do:
+        assign 
+            mensagem = oJsonRespObj:GetCharacter("message").
+        MESSAGE "Falha na Exclusão (Não Autorizado): " mensagem VIEW-AS ALERT-BOX ERROR.
+        RETURN FALSE.
+    end.
+    IF oResp:StatusCode eq 403 THEN 
+    do:
+        assign 
+            mensagem = oJsonRespObj:GetCharacter("message").
+        MESSAGE "Falha na Exclusão (Proibido): " mensagem VIEW-AS ALERT-BOX ERROR.
+        RETURN FALSE.
+    end.
+
+    IF oResp:StatusCode eq 404 THEN 
+    do:
+        assign 
+            mensagem = oJsonRespObj:GetCharacter("message").
+        MESSAGE "Falha na Exclusão (Não Encontrado): " mensagem VIEW-AS ALERT-BOX ERROR.
+        RETURN FALSE.
+    end.
     ELSE 
     DO:
-        MESSAGE "Erro ao excluir cliente. Status:" oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
+        MESSAGE "Erro desconhecido na Exclusão. Status:" oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
         RETURN FALSE.
     END.
-
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
@@ -934,7 +1103,7 @@ FUNCTION Fc-Atualizar RETURNS LOGICAL
     assign 
         oClient = ClientBuilder:Build():Client       
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
-    oUri:Path = "/users/".  
+    oUri:Path = "/users/user_id".  
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
@@ -960,46 +1129,50 @@ FUNCTION Fc-Atualizar RETURNS LOGICAL
         
         IF oResp:StatusCode eq 200 THEN 
         do:
-           create ttcli.
+            create ttcli.
             assign 
-            ttcli.name       = oJsonRespObj:getCharacter("name")    
-            ttcli.email      = oJsonRespObj:getCharacter("email")
-            ttcli.password   = oJsonRespObj:getCharacter("password")
-            ttcli.phone      = oJsonRespObj:getCharacter("phone")
-            ttcli.experience = oJsonRespObj:getCharacter("experience")
-            ttcli.education  = oJsonRespObj:getCharacter("education").  
-            . 
-        end. 
+                ttcli.name       = oJsonRespObj:getCharacter("name")    
+                ttcli.email      = oJsonRespObj:getCharacter("email")
+                ttcli.password   = oJsonRespObj:getCharacter("password")
+                ttcli.phone      = oJsonRespObj:getCharacter("phone")
+                ttcli.experience = oJsonRespObj:getCharacter("experience")
+                ttcli.education  = oJsonRespObj:getCharacter("education").
+            MESSAGE "Atualização de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
+
+        end.
         IF oResp:StatusCode eq 401 THEN 
         do:
-           
             assign 
-                mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Não Autorizado): " mensagem VIEW-AS ALERT-BOX ERROR.
+    
         end.
+
         IF oResp:StatusCode eq 403 THEN 
         do:
-          
             assign 
-                mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Proibido): " mensagem VIEW-AS ALERT-BOX ERROR.
+       
         end.
         IF oResp:StatusCode eq 404 THEN 
+
         do:
-          
             assign 
-                mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Não Encontrado): " mensagem 
+                VIEW-AS ALERT-BOX ERROR.
         end.
         IF oResp:StatusCode eq 422 THEN 
         do:
-           /* Mostra o total de registros retornados */
             assign 
                 mensagem = oJsonRespObj:GetCharacter("message") 
                 codigo   = oJsonRespObj:GetCharacter("code") 
-                detalhes = oJsonRespObj:GetCharacter("detail")  
-            . 
-        end.                      
+                detalhes = oJsonRespObj:GetCharacter("detail").
+
+            MESSAGE "Falha no Cadastro (Dados Inválidos): " mensagem SKIP codigo SKIP detalhes 
+                VIEW-AS ALERT-BOX ERROR.
+        end.                     
     end.
     CATCH e AS Progress.Lang.Error:
         MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
@@ -1046,33 +1219,38 @@ FUNCTION Fc-Cadastrar RETURNS LOGICAL
         
         IF oResp:StatusCode eq 201 THEN 
         do:
-           /* Mostra o total de registros retornados */
             assign 
-                mensagem = oJsonRespObj:GetCharacter("message") 
-                codigo   = oJsonRespObj:GetCharacter("code") 
-                detalhes = oJsonRespObj:GetCharacter("detail")  
-            . 
-        end. 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Cadastro efetuado com sucesso: " mensagem 
+                VIEW-AS ALERT-BOX INFO.
+            RETURN TRUE.
+        end.
         IF oResp:StatusCode eq 409 THEN 
         do:
-           /* Mostra o total de registros retornados */
             assign 
-                mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
+
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha no Cadastro (Conflito): " mensagem 
+                VIEW-AS ALERT-BOX ERROR.
+
         end.
         IF oResp:StatusCode eq 422 THEN 
         do:
-           /* Mostra o total de registros retornados */
             assign 
                 mensagem = oJsonRespObj:GetCharacter("message") 
                 codigo   = oJsonRespObj:GetCharacter("code") 
-                detalhes = oJsonRespObj:GetCharacter("detail")  
-            . 
+                detalhes = oJsonRespObj:GetCharacter("detail").
+            MESSAGE "Falha na Atualização (Dados Inválidos): " mensagem SKIP codigo SKIP detalhes 
+                VIEW-AS ALERT-BOX ERROR.
+ 
         end.
-        ELSE DO :
-                 MESSAGE "outra coisa"
-                 VIEW-AS ALERT-BOX. 
-        END.                   
+        ELSE 
+        DO :
+            MESSAGE "Erro desconhecido no Cadastro. Status: " oResp:StatusCode 
+                VIEW-AS ALERT-BOX ERROR.
+
+
+        END.
     end. 
     CATCH e AS Progress.Lang.Error:
         MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
@@ -1134,7 +1312,7 @@ FUNCTION Fc-Ler RETURNS LOGICAL
     ASSIGN 
         oClient = ClientBuilder:Build():Client
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-    oUri:Path = "/users/".
+    oUri:Path = "/users/user_id".
 
     oReq = RequestBuilder:get(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -1149,46 +1327,47 @@ FUNCTION Fc-Ler RETURNS LOGICAL
         oJsonArray = oJsonRespArray.  
         
         IF oResp:StatusCode eq 200 THEN 
+
         do:
+
             CREATE ttcli.
+
             assign 
+
                 ttcli.name       = oJsonRespObj:GetCharacter("name")
                 ttcli.username   = oJsonRespObj:GetCharacter("username")
                 ttcli.email      = oJsonRespObj:GetCharacter("email")
                 ttcli.password   = oJsonRespObj:GetCharacter("password")
                 ttcli.phone      = oJsonRespObj:GetCharacter("phone")
                 ttcli.experience = oJsonRespObj:GetCharacter("experience")
-                ttcli.education  = oJsonRespObj:GetCharacter("education")
-                .              
+                ttcli.education  = oJsonRespObj:GetCharacter("education").
+            MESSAGE "Leitura de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
         end.
         IF oResp:StatusCode eq 401 THEN 
-        do:
-           
+        do:          
             assign 
                 mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
+                . 
         end.
         IF oResp:StatusCode eq 403 THEN 
-        do:
-          
+        do:         
             assign 
                 mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
+                . 
         end.
         IF oResp:StatusCode eq 404 THEN 
         do:
-          
             assign 
                 mensagem = oJsonRespObj:GetCharacter("message")    
-            . 
+                . 
         end.
-    end.
+    end.    
     ELSE 
     DO:
-        MESSAGE "Falha ao ler cliente. Status:" oResp:StatusCode VIEW-AS ALERT-BOX ERROR.
-        RETURN FALSE.
+        MESSAGE "Erro desconhecido na Leitura. Status:" oResp:StatusCode 
+            VIEW-AS ALERT-BOX ERROR.
+
     END.
-    disp mensagem. 
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1205,7 +1384,7 @@ FUNCTION Fc-Login RETURNS LOGICAL
     assign 
         oClient = ClientBuilder:Build():Client       
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
-        oUri:Path = "/login".  
+    oUri:Path = "/login".  
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
@@ -1229,25 +1408,33 @@ FUNCTION Fc-Login RETURNS LOGICAL
         
         IF oResp:StatusCode eq 200 THEN 
         do: 
-           assign
-            Token     = oJsonRespObj:GetCharacter("token")
-            expira_em = oJsonRespObj:GetInt64("expires_in")
-            log = true.
+            assign
+                Token     = oJsonRespObj:GetCharacter("token")
+                expira_em = oJsonRespObj:GetInt64("expires_in")
+                log       = true.
+            MESSAGE "Login efetuado com sucesso!" VIEW-AS ALERT-BOX INFO.
         end.
-        ELSE DO :
-           assign   
-            mensagem  = oJsonRespObj:GetCharacter("message")
-           .       
-        END. 
-        
-    end.
-    disp mensagem. 
-    
-    CATCH e AS Progress.Lang.Error:
-        MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
-    END CATCH.
-END FUNCTION.
+        ELSE 
+        DO :            
+            IF oResp:StatusCode eq 401 THEN
+            DO:
+                assign
+                    mensagem = oJsonRespObj:GetCharacter("message").
 
+                MESSAGE "Falha no Login: " mensagem 
+                    VIEW-AS ALERT-BOX ERROR.
+
+            END.
+            ELSE 
+            DO :
+
+                MESSAGE "Erro desconhecido no Login. Status: " oResp:StatusCode 
+                    VIEW-AS ALERT-BOX ERROR.
+   
+            END. 
+        end.  
+   end.
+END FUNCTION.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
@@ -1262,7 +1449,7 @@ FUNCTION Fc-Logout RETURNS LOGICAL
     ASSIGN 
         oClient   = ClientBuilder:Build():Client
         oUri      = URI:Parse(metodo + "://" + host + ":" + STRING(porta)) /* URI("metodo", "dominio", "porta") */
-        oUri:Path = "/logout".
+        oUri:Path = "/logout/user_id".
 
     oReq = RequestBuilder:Post(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -1297,15 +1484,16 @@ FUNCTION Fc-Token RETURNS LOGICAL
      Notes:
     ------------------------------------------------------------------------------*/
 
-    DEFINE VARIABLE payload   AS CHARACTER NO-UNDO.
-    DEFINE VARIABLE iSep1     AS INTEGER NO-UNDO.
-    DEFINE VARIABLE iSep2     AS INTEGER NO-UNDO.
-    DEFINE VARIABLE cPayload  AS CHARACTER NO-UNDO.
-    DEFINE VARIABLE mDecoded  AS MEMPTR NO-UNDO.
-    DEFINE VARIABLE lcDecoded AS LONGCHAR NO-UNDO.
-    DEFINE VARIABLE id AS CHARACTER NO-UNDO.
+    DEFINE VARIABLE payload         AS CHARACTER NO-UNDO.
+    DEFINE VARIABLE oJsonPayload    AS JsonObject NO-UNDO.
+    DEFINE VARIABLE myParser         as ObjectModelParser no-undo.   
+    DEFINE VARIABLE iSep1           AS INTEGER   NO-UNDO.
+    DEFINE VARIABLE iSep2           AS INTEGER   NO-UNDO.
+    DEFINE VARIABLE cPayload        AS CHARACTER NO-UNDO.
+    DEFINE VARIABLE mDecoded        AS MEMPTR    NO-UNDO.
+    DEFINE VARIABLE lcDecoded       AS LONGCHAR NO-UNDO.
    
-    
+    myParser = NEW ObjectModelParser().
     iSep1 = INDEX(token, ".").
     iSep2 = INDEX(token, ".", iSep1 + 1).
     cPayload = SUBSTRING(token, iSep1 + 1, iSep2 - iSep1 - 1).
@@ -1319,10 +1507,15 @@ FUNCTION Fc-Token RETURNS LOGICAL
     /* decodifica */
     mDecoded = BASE64-DECODE(cPayload).
     COPY-LOB FROM mDecoded TO lcDecoded.
-    id = lcDecoded.
-    MESSAGE id
-    VIEW-AS ALERT-BOX.
+    
+    /* Converte o payload decodificado para JsonObject e extrai o 'sub' */
+    oJsonPayload = CAST(myParser:Parse(lcDecoded),JsonObject).
+    ASSIGN user_id = oJsonPayload:GetCharacter("sub"). /* ARMAZENA O ID */
+    
+    /* Remove a mensagem de debug desnecessária */
+     MESSAGE user_id VIEW-AS ALERT-BOX. 
 
+    RETURN TRUE.
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
