@@ -235,46 +235,6 @@ DEFINE RECTANGLE RECT-8
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
      SIZE 60 BY 10.
 
-DEFINE BUTTON bt-L 
-     LABEL "Login" 
-     SIZE 15 BY 1.14.
-
-DEFINE BUTTON bt-VC 
-     LABEL "Cadastrar" 
-     SIZE 15 BY 1.14.
-
-DEFINE VARIABLE f-senhaL AS CHARACTER FORMAT "X(256)":U INITIAL "Senha" 
-     VIEW-AS FILL-IN 
-     SIZE 39 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-UnomeL AS CHARACTER FORMAT "X(30)":U INITIAL "Usuario" 
-     VIEW-AS FILL-IN 
-     SIZE 39 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE RECTANGLE RECT-10
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 52 BY 7.38.
-
-DEFINE VARIABLE fi-host AS CHARACTER FORMAT "X(15)":U 
-     LABEL "host" 
-      VIEW-AS TEXT 
-     SIZE 30.2 BY .62
-     FGCOLOR 10  NO-UNDO.
-
-DEFINE VARIABLE fi-port AS CHARACTER FORMAT "X(20)":U 
-     LABEL "port" 
-      VIEW-AS TEXT 
-     SIZE 20 BY .62
-     FGCOLOR 10  NO-UNDO.
-
-DEFINE VARIABLE fi-role AS CHARACTER FORMAT "X(20)":U 
-     LABEL "role" 
-      VIEW-AS TEXT 
-     SIZE 20 BY .62
-     FGCOLOR 10  NO-UNDO.
-
 DEFINE BUTTON bt-C 
      LABEL "bt-C" 
      SIZE 8 BY 1.91.
@@ -349,6 +309,46 @@ DEFINE RECTANGLE RECT-7
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
      SIZE 101 BY 2.62.
 
+DEFINE BUTTON bt-L 
+     LABEL "Login" 
+     SIZE 15 BY 1.14.
+
+DEFINE BUTTON bt-VC 
+     LABEL "Cadastrar" 
+     SIZE 15 BY 1.14.
+
+DEFINE VARIABLE f-senhaL AS CHARACTER FORMAT "X(256)":U INITIAL "Senha" 
+     VIEW-AS FILL-IN 
+     SIZE 39 BY 1
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-UnomeL AS CHARACTER FORMAT "X(30)":U INITIAL "Usuario" 
+     VIEW-AS FILL-IN 
+     SIZE 39 BY 1
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE RECTANGLE RECT-10
+     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+     SIZE 52 BY 7.38.
+
+DEFINE VARIABLE fi-host AS CHARACTER FORMAT "X(15)":U 
+     LABEL "host" 
+      VIEW-AS TEXT 
+     SIZE 30.2 BY .62
+     FGCOLOR 10  NO-UNDO.
+
+DEFINE VARIABLE fi-port AS CHARACTER FORMAT "X(20)":U 
+     LABEL "port" 
+      VIEW-AS TEXT 
+     SIZE 20 BY .62
+     FGCOLOR 10  NO-UNDO.
+
+DEFINE VARIABLE fi-role AS CHARACTER FORMAT "X(20)":U 
+     LABEL "role" 
+      VIEW-AS TEXT 
+     SIZE 20 BY .62
+     FGCOLOR 10  NO-UNDO.
+
 
 /* ************************  Frame Definitions  *********************** */
 
@@ -393,7 +393,7 @@ DEFINE FRAME frm-C
          SIZE 101 BY 15.95
          FONT 3 WIDGET-ID 600.
 
-DEFINE FRAME frm-U
+DEFINE FRAME frm-E
      bt-C AT ROW 1.24 COL 60.4 WIDGET-ID 32
      bt-R AT ROW 1.24 COL 69 WIDGET-ID 30
      bt-U AT ROW 1.24 COL 77.6 WIDGET-ID 2
@@ -468,6 +468,22 @@ ASSIGN FRAME frm-C:FRAME = FRAME frm-home:HANDLE
 
 /* SETTINGS FOR FRAME frm-C
                                                                         */
+/* SETTINGS FOR FRAME frm-E
+                                                                        */
+/* SETTINGS FOR FILL-IN f-email IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-exp IN FRAME frm-E
+   4 6                                                                  */
+/* SETTINGS FOR FILL-IN f-Form IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-nome IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-senha IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-telefone IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-Unome IN FRAME frm-E
+   2 6                                                                  */
 /* SETTINGS FOR FRAME frm-home
    FRAME-NAME                                                           */
 
@@ -491,22 +507,6 @@ ASSIGN
 ASSIGN 
        fi-role:READ-ONLY IN FRAME frm-rodape        = TRUE.
 
-/* SETTINGS FOR FRAME frm-U
-                                                                        */
-/* SETTINGS FOR FILL-IN f-email IN FRAME frm-U
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-exp IN FRAME frm-U
-   4 6                                                                  */
-/* SETTINGS FOR FILL-IN f-Form IN FRAME frm-U
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-nome IN FRAME frm-U
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-senha IN FRAME frm-U
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-telefone IN FRAME frm-U
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-Unome IN FRAME frm-U
-   2 6                                                                  */
 IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(Win-Client)
 THEN Win-Client:HIDDEN = yes.
 
@@ -546,10 +546,10 @@ DO:
 &ANALYZE-RESUME
 
 
-&Scoped-define FRAME-NAME frm-U
+&Scoped-define FRAME-NAME frm-E
 &Scoped-define SELF-NAME bt-C
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-C Win-Client
-ON CHOOSE OF bt-C IN FRAME frm-U /* bt-C */
+ON CHOOSE OF bt-C IN FRAME frm-E /* bt-C */
 DO:
         assign 
             op-CRUD = 3.
@@ -573,10 +573,10 @@ DO:
 &ANALYZE-RESUME
 
 
-&Scoped-define FRAME-NAME frm-U
+&Scoped-define FRAME-NAME frm-E
 &Scoped-define SELF-NAME bt-D
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-D Win-Client
-ON CHOOSE OF bt-D IN FRAME frm-U /* bt-D */
+ON CHOOSE OF bt-D IN FRAME frm-E /* bt-D */
 DO:
         assign 
             op-CRUD = 4.
@@ -601,10 +601,10 @@ DO:
 &ANALYZE-RESUME
 
 
-&Scoped-define FRAME-NAME frm-U
+&Scoped-define FRAME-NAME frm-E
 &Scoped-define SELF-NAME bt-R
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-R Win-Client
-ON CHOOSE OF bt-R IN FRAME frm-U /* bt-R */
+ON CHOOSE OF bt-R IN FRAME frm-E /* bt-R */
 DO:
         assign 
             op-CRUD = 2.
@@ -618,7 +618,7 @@ DO:
 
 &Scoped-define SELF-NAME bt-U
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-U Win-Client
-ON CHOOSE OF bt-U IN FRAME frm-U /* bt-U */
+ON CHOOSE OF bt-U IN FRAME frm-E /* bt-U */
 DO:
         assign 
             op-CRUD = 3.
@@ -638,7 +638,7 @@ DO:
         assign 
             op-CRUD = 1. 
         Fc-Cadastrar().
-        frame frm-u:hidden = false.
+        frame frm-E:hidden = false.
         frame frm-L:hidden = true.
         frame frm-C:hidden = true.
     END.
@@ -666,7 +666,7 @@ DO:
 ON CHOOSE OF MENU-ITEM m_Login /* Login */
 DO:
         frame frm-L:hidden = false.
-        frame frm-u:hidden = true.
+        frame frm-E:hidden = true.
         frame frm-C:hidden = true.
         frame frm-home:hidden = false.
     END.
@@ -694,7 +694,7 @@ DO:
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_User Win-Client
 ON CHOOSE OF MENU-ITEM m_User /* User */
 DO:
-        frame frm-u:hidden = false.    
+        frame frm-E:hidden = false.    
         frame frm-home:hidden = true.
         frame frm-L:hidden = true.
    
@@ -779,6 +779,12 @@ PROCEDURE enable_UI :
   ENABLE RECT-8 f-host f-port f-role bt-con 
       WITH FRAME frm-C IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-C}
+  DISPLAY f-Unome f-nome f-senha f-email f-telefone f-Form f-exp 
+      WITH FRAME frm-E IN WINDOW Win-Client.
+  ENABLE RECT-4 RECT-5 RECT-6 RECT-7 bt-C bt-R bt-U bt-D f-Unome f-nome f-senha 
+         f-email f-telefone f-Form f-exp 
+      WITH FRAME frm-E IN WINDOW Win-Client.
+  {&OPEN-BROWSERS-IN-QUERY-frm-E}
   VIEW FRAME frm-home IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-home}
   DISPLAY f-UnomeL f-senhaL 
@@ -786,12 +792,6 @@ PROCEDURE enable_UI :
   ENABLE RECT-10 f-UnomeL f-senhaL bt-L bt-VC 
       WITH FRAME frm-L IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-L}
-  DISPLAY f-Unome f-nome f-senha f-email f-telefone f-Form f-exp 
-      WITH FRAME frm-U IN WINDOW Win-Client.
-  ENABLE RECT-4 RECT-5 RECT-6 RECT-7 bt-C bt-R bt-U bt-D f-Unome f-nome f-senha 
-         f-email f-telefone f-Form f-exp 
-      WITH FRAME frm-U IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-U}
   DISPLAY fi-host fi-port fi-role 
       WITH FRAME frm-rodape IN WINDOW Win-Client.
   ENABLE fi-host fi-port fi-role 
@@ -829,15 +829,15 @@ PROCEDURE mudadeoperacao :
             do.
                 assign
                     
-                    bt-R:sensitive in frame frm-u = yes
-                    bt-U:sensitive in frame frm-u = yes
-                    bt-D:sensitive in frame frm-u = no.
+                    bt-R:sensitive in frame frm-E = yes
+                    bt-U:sensitive in frame frm-E = yes
+                    bt-D:sensitive in frame frm-E = no.
 
                 /* limpara a tela */
-                clear frame frm-u.
+                clear frame frm-E.
   
             /* posiciona o cursor no primeiro campo da chave */
-                //apply "entry" to {&List-2} in frame frm-u.
+                //apply "entry" to {&List-2} in frame frm-E.
 
             end.
         when 3 or 
@@ -845,14 +845,14 @@ PROCEDURE mudadeoperacao :
             do.
                 assign
                    
-                    bt-R:sensitive in frame frm-u = no
-                    bt-U:sensitive in frame frm-u = yes
-                    bt-D:sensitive in frame frm-u = yes.
+                    bt-R:sensitive in frame frm-E = no
+                    bt-U:sensitive in frame frm-E = yes
+                    bt-D:sensitive in frame frm-E = yes.
 
             /* desabilita os campos da chave */ 
                    
             /* posiciona o cursor no primeiro campo alteravel */
-               // apply "entry" to {&List-4} in frame frm-u.
+               // apply "entry" to {&List-4} in frame frm-E.
 
             end.
   
@@ -941,12 +941,12 @@ FUNCTION Fc-Atualizar RETURNS LOGICAL
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
-    oJsonObj:Add("name", input frame frm-u f-nome).
-    oJsonObj:Add("password", input frame frm-u f-Senha).
-    oJsonObj:Add("email", input frame frm-u f-email + formatado).
-    oJsonObj:Add("phone", input frame frm-u f-telefone).
-    oJsonObj:Add("experience", input frame frm-u f-exp).
-    oJsonObj:Add("education", input frame frm-u f-Form).
+    oJsonObj:Add("name", input frame frm-E f-nome).
+    oJsonObj:Add("password", input frame frm-E f-Senha).
+    oJsonObj:Add("email", input frame frm-E f-email + formatado).
+    oJsonObj:Add("phone", input frame frm-E f-telefone).
+    oJsonObj:Add("experience", input frame frm-E f-exp).
+    oJsonObj:Add("education", input frame frm-E f-Form).
 
     /* Faz a requisicao utilizando POST */
     oReq  = RequestBuilder:Patch(oUri, oJsonObj)
@@ -1031,13 +1031,13 @@ FUNCTION Fc-Cadastrar RETURNS LOGICAL
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
-    oJsonObj:Add("name", input frame frm-u f-nome).
-    oJsonObj:Add("username", input frame frm-u f-Unome).
-    oJsonObj:Add("password", input frame frm-u f-Senha).
-    oJsonObj:Add("email", input frame frm-u f-email + formatado).
-    oJsonObj:Add("phone", input frame frm-u f-telefone).
-    oJsonObj:Add("experience", input frame frm-u f-exp).
-    oJsonObj:Add("education", input frame frm-u f-Form).
+    oJsonObj:Add("name", input frame frm-E f-nome).
+    oJsonObj:Add("username", input frame frm-E f-Unome).
+    oJsonObj:Add("password", input frame frm-E f-Senha).
+    oJsonObj:Add("email", input frame frm-E f-email + formatado).
+    oJsonObj:Add("phone", input frame frm-E f-telefone).
+    oJsonObj:Add("experience", input frame frm-E f-exp).
+    oJsonObj:Add("education", input frame frm-E f-Form).
 
   
     /* Faz a requisicao utilizando POST */
@@ -1126,7 +1126,7 @@ FUNCTION Fc-Inicia RETURNS LOGICAL
         Notes:  
     ------------------------------------------------------------------------------*/
     frame frm-c:hidden = true.
-    frame frm-u:hidden = true.
+    frame frm-E:hidden = true.
     frame frm-l:hidden = true.
     //frame frm-trab:hidden = true.
 
@@ -1367,7 +1367,7 @@ FUNCTION Fc-Trata RETURNS LOGICAL
     /** Abaixo regras de negocio e tratamentos necessarios **/
     for each ttcli no-lock:
         disp ttcli.name @ {&List-6}
-            with frame frm-u.    
+            with frame frm-E.    
     end.
 
 
