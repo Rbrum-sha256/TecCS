@@ -56,13 +56,18 @@ CREATE WIDGET-POOL.
 DEFINE STREAM sJson.    
 def temp-table ttCli
     field name       as char
+    field business   as char
     field username   as char
     field password   as char
+    field street     as char
+    field number     as char
+    field city       as char
+    field state      as char
     field email      as char
     field phone      as char
-    field experience as char
-    field education  as char
+    
     .   
+
 /* Local Variable Definition ---                                        */
 def    var      oClient        as IHttpClient   no-undo.
 def    var      oUri           as URI           no-undo.
@@ -80,7 +85,7 @@ DEFINE VARIABLE expira_em      AS INT64         NO-UNDO.
 DEFINE VARIABLE mensagem       AS CHARACTER     NO-UNDO.
 DEFINE VARIABLE codigo         AS CHARACTER     NO-UNDO.
 DEFINE VARIABLE detalhes       AS CHARACTER     NO-UNDO.
-DEFINE VARIABLE user_id        AS CHARACTER     NO-UNDO.  
+DEFINE VARIABLE id             AS CHARACTER     NO-UNDO.  
     
 DEFINE VARIABLE i              AS INTEGER       NO-UNDO.
 DEFINE VARIABLE op-CRUD        AS integer       NO-UNDO.
@@ -109,9 +114,9 @@ DEFINE VARIABLE role           AS CHARACTER     NO-UNDO.
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
 &Scoped-define List-2 f-Unome 
-&Scoped-define List-4 f-exp 
-&Scoped-define List-6 f-Unome f-nome f-senha f-email f-telefone f-Form ~
-f-exp 
+&Scoped-define List-4 f-cidade f-est 
+&Scoped-define List-6 f-Unome f-nome f-senha f-rua f-cidade f-est f-email ~
+f-telefone 
 
 /* _UIB-PREPROCESSOR-BLOCK-END */
 &ANALYZE-RESUME
@@ -251,28 +256,39 @@ DEFINE BUTTON bt-U
      LABEL "bt-U" 
      SIZE 8 BY 1.91.
 
+DEFINE VARIABLE f-cidade AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Cidade" 
+     VIEW-AS FILL-IN 
+     SIZE 59.8 BY .95
+     FGCOLOR 9  NO-UNDO.
+
 DEFINE VARIABLE f-email AS CHARACTER FORMAT "X(30)":U 
      LABEL "E-mail" 
      VIEW-AS FILL-IN 
      SIZE 39 BY 1
      FGCOLOR 9  NO-UNDO.
 
-DEFINE VARIABLE f-exp AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Experiencia" 
+DEFINE VARIABLE f-est AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Estado" 
      VIEW-AS FILL-IN 
-     SIZE 59.8 BY 2.14
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-Form AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Formacao" 
-     VIEW-AS FILL-IN 
-     SIZE 44 BY .95
+     SIZE 59.8 BY .95
      FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-nome AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Nome" 
+     LABEL "Empresa" 
      VIEW-AS FILL-IN 
      SIZE 42 BY 1
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-num AS INTEGER FORMAT ">,>>9":U INITIAL 0 
+     LABEL "Num" 
+     VIEW-AS FILL-IN 
+     SIZE 13 BY 1.1 NO-UNDO.
+
+DEFINE VARIABLE f-rua AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Rua" 
+     VIEW-AS FILL-IN 
+     SIZE 38.8 BY .95
      FGCOLOR 9  NO-UNDO.
 
 DEFINE VARIABLE f-senha AS CHARACTER FORMAT "X(256)":U 
@@ -401,14 +417,16 @@ DEFINE FRAME frm-E
      f-Unome AT ROW 5.38 COL 31 COLON-ALIGNED WIDGET-ID 6
      f-nome AT ROW 6.48 COL 31 COLON-ALIGNED WIDGET-ID 4
      f-senha AT ROW 7.52 COL 31 COLON-ALIGNED WIDGET-ID 8
-     f-email AT ROW 9.43 COL 31 COLON-ALIGNED WIDGET-ID 10
-     f-telefone AT ROW 10.62 COL 31 COLON-ALIGNED WIDGET-ID 12
-     f-Form AT ROW 12.38 COL 31 COLON-ALIGNED WIDGET-ID 14
-     f-exp AT ROW 13.57 COL 31 COLON-ALIGNED WIDGET-ID 16
+     f-num AT ROW 9.33 COL 77.8 COLON-ALIGNED WIDGET-ID 42
+     f-rua AT ROW 9.38 COL 31.2 COLON-ALIGNED WIDGET-ID 14
+     f-cidade AT ROW 10.57 COL 31.2 COLON-ALIGNED WIDGET-ID 16
+     f-est AT ROW 11.71 COL 31 COLON-ALIGNED WIDGET-ID 44
+     f-email AT ROW 13.48 COL 31 COLON-ALIGNED WIDGET-ID 10
+     f-telefone AT ROW 14.67 COL 31 COLON-ALIGNED WIDGET-ID 12
      RECT-4 AT ROW 4.81 COL 4 WIDGET-ID 34
-     RECT-5 AT ROW 11.95 COL 4 WIDGET-ID 36
-     RECT-6 AT ROW 9.1 COL 4 WIDGET-ID 38
-     RECT-7 AT ROW 1 COL 1.2 WIDGET-ID 40
+     RECT-5 AT ROW 9.1 COL 4 WIDGET-ID 36
+     RECT-6 AT ROW 13.14 COL 4 WIDGET-ID 38
+     RECT-7 AT ROW 1 COL 1 WIDGET-ID 40
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 1
@@ -470,13 +488,15 @@ ASSIGN FRAME frm-C:FRAME = FRAME frm-home:HANDLE
                                                                         */
 /* SETTINGS FOR FRAME frm-E
                                                                         */
+/* SETTINGS FOR FILL-IN f-cidade IN FRAME frm-E
+   4 6                                                                  */
 /* SETTINGS FOR FILL-IN f-email IN FRAME frm-E
    6                                                                    */
-/* SETTINGS FOR FILL-IN f-exp IN FRAME frm-E
+/* SETTINGS FOR FILL-IN f-est IN FRAME frm-E
    4 6                                                                  */
-/* SETTINGS FOR FILL-IN f-Form IN FRAME frm-E
-   6                                                                    */
 /* SETTINGS FOR FILL-IN f-nome IN FRAME frm-E
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-rua IN FRAME frm-E
    6                                                                    */
 /* SETTINGS FOR FILL-IN f-senha IN FRAME frm-E
    6                                                                    */
@@ -779,10 +799,10 @@ PROCEDURE enable_UI :
   ENABLE RECT-8 f-host f-port f-role bt-con 
       WITH FRAME frm-C IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-C}
-  DISPLAY f-Unome f-nome f-senha f-email f-telefone f-Form f-exp 
+  DISPLAY f-Unome f-nome f-senha f-num f-rua f-cidade f-est f-email f-telefone 
       WITH FRAME frm-E IN WINDOW Win-Client.
   ENABLE RECT-4 RECT-5 RECT-6 RECT-7 bt-C bt-R bt-U bt-D f-Unome f-nome f-senha 
-         f-email f-telefone f-Form f-exp 
+         f-num f-rua f-cidade f-est f-email f-telefone 
       WITH FRAME frm-E IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-E}
   VIEW FRAME frm-home IN WINDOW Win-Client.
@@ -803,67 +823,6 @@ END PROCEDURE.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE mostraregistro Win-Client 
-PROCEDURE mostraregistro :
-/*------------------------------------------------------------------------------
-         Purpose:
-         Notes:
-        ------------------------------------------------------------------------------*/
-    
-    Fc-Trata().
-    
-
-END PROCEDURE.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE mudadeoperacao Win-Client 
-PROCEDURE mudadeoperacao :
-/*------------------------------------------------------------------------------
-         Purpose:
-         Notes:
-        ------------------------------------------------------------------------------*/  
-    case op-CRUD:
-        when 1 then 
-            do.
-                assign
-                    
-                    bt-R:sensitive in frame frm-E = yes
-                    bt-U:sensitive in frame frm-E = yes
-                    bt-D:sensitive in frame frm-E = no.
-
-                /* limpara a tela */
-                clear frame frm-E.
-  
-            /* posiciona o cursor no primeiro campo da chave */
-                //apply "entry" to {&List-2} in frame frm-E.
-
-            end.
-        when 3 or 
-        when 4 then 
-            do.
-                assign
-                   
-                    bt-R:sensitive in frame frm-E = no
-                    bt-U:sensitive in frame frm-E = yes
-                    bt-D:sensitive in frame frm-E = yes.
-
-            /* desabilita os campos da chave */ 
-                   
-            /* posiciona o cursor no primeiro campo alteravel */
-               // apply "entry" to {&List-4} in frame frm-E.
-
-            end.
-  
-    end case.  
- 
-
-END PROCEDURE.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
 /* ************************  Function Implementations ***************** */
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Apagar Win-Client 
@@ -877,7 +836,7 @@ FUNCTION Fc-Apagar RETURNS LOGICAL
     ASSIGN 
         oClient = ClientBuilder:Build():Client
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-    oUri:Path = "/users/user_id".
+    oUri:Path = "/companies/id".
 
     oReq = RequestBuilder:Delete(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -937,16 +896,19 @@ FUNCTION Fc-Atualizar RETURNS LOGICAL
     assign 
         oClient = ClientBuilder:Build():Client       
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
-    oUri:Path = "/users/user_id".  
+    oUri:Path = "/companies/id".  
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
     oJsonObj:Add("name", input frame frm-E f-nome).
+    oJsonObj:Add("business", input frame frm-E f-nome).
     oJsonObj:Add("password", input frame frm-E f-Senha).
+    oJsonObj:Add("street", input frame frm-E f-rua).
+    oJsonObj:Add("number", input frame frm-E f-num).
+    oJsonObj:Add("city", input frame frm-E f-cidade).
+    oJsonObj:Add("state", input frame frm-E f-est).
     oJsonObj:Add("email", input frame frm-E f-email + formatado).
     oJsonObj:Add("phone", input frame frm-E f-telefone).
-    oJsonObj:Add("experience", input frame frm-E f-exp).
-    oJsonObj:Add("education", input frame frm-E f-Form).
 
     /* Faz a requisicao utilizando POST */
     oReq  = RequestBuilder:Patch(oUri, oJsonObj)
@@ -963,14 +925,19 @@ FUNCTION Fc-Atualizar RETURNS LOGICAL
         
         IF oResp:StatusCode eq 200 THEN 
         do:
-            create ttcli.
+            /*create ttcli.
             assign 
                 ttcli.name       = oJsonRespObj:getCharacter("name")    
                 ttcli.email      = oJsonRespObj:getCharacter("email")
                 ttcli.password   = oJsonRespObj:getCharacter("password")
+                ttcli.business   = oJsonRespObj:getCharacter("business")
                 ttcli.phone      = oJsonRespObj:getCharacter("phone")
-                ttcli.experience = oJsonRespObj:getCharacter("experience")
-                ttcli.education  = oJsonRespObj:getCharacter("education").
+                ttcli.city       = oJsonRespObj:getCharacter("city")
+                ttcli.state      = oJsonRespObj:getCharacter("state")
+                ttcli.number     = oJsonRespObj:getCharacter("number")
+                ttcli.street     = oJsonRespObj:getCharacter("street")
+                .*/
+            mensagem = oJsonRespObj:GetCharacter("message").
             MESSAGE "Atualização de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
 
         end.
@@ -1027,19 +994,20 @@ FUNCTION Fc-Cadastrar RETURNS LOGICAL
     assign 
         oClient = ClientBuilder:Build():Client   
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
-    oUri:Path = "/users".  
+    oUri:Path = "/companies".  
         
     /* Cria objeto Json e popula ele */
     oJsonObj = NEW JsonObject().
     oJsonObj:Add("name", input frame frm-E f-nome).
+    oJsonObj:Add("business", input frame frm-E f-nome).
     oJsonObj:Add("username", input frame frm-E f-Unome).
     oJsonObj:Add("password", input frame frm-E f-Senha).
+    oJsonObj:Add("street", input frame frm-E f-rua).
+    oJsonObj:Add("number", input frame frm-E f-num).
+    oJsonObj:Add("city", input frame frm-E f-cidade).
+    oJsonObj:Add("state", input frame frm-E f-est).
     oJsonObj:Add("email", input frame frm-E f-email + formatado).
     oJsonObj:Add("phone", input frame frm-E f-telefone).
-    oJsonObj:Add("experience", input frame frm-E f-exp).
-    oJsonObj:Add("education", input frame frm-E f-Form).
-
-  
     /* Faz a requisicao utilizando POST */
     oReq  = RequestBuilder:Post(oUri, oJsonObj)
             :AcceptJson()
@@ -1146,7 +1114,7 @@ FUNCTION Fc-Ler RETURNS LOGICAL
     ASSIGN 
         oClient = ClientBuilder:Build():Client
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-    oUri:Path = "/users/user_id".
+    oUri:Path = "/companies/id".
 
     oReq = RequestBuilder:get(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -1163,18 +1131,18 @@ FUNCTION Fc-Ler RETURNS LOGICAL
         IF oResp:StatusCode eq 200 THEN 
 
         do:
-
             CREATE ttcli.
-
             assign 
-
-                ttcli.name       = oJsonRespObj:GetCharacter("name")
-                ttcli.username   = oJsonRespObj:GetCharacter("username")
-                ttcli.email      = oJsonRespObj:GetCharacter("email")
-                ttcli.password   = oJsonRespObj:GetCharacter("password")
-                ttcli.phone      = oJsonRespObj:GetCharacter("phone")
-                ttcli.experience = oJsonRespObj:GetCharacter("experience")
-                ttcli.education  = oJsonRespObj:GetCharacter("education").
+                ttcli.name       = oJsonRespObj:getCharacter("name")    
+                ttcli.email      = oJsonRespObj:getCharacter("email")
+                ttcli.password   = oJsonRespObj:getCharacter("password")
+                ttcli.business   = oJsonRespObj:getCharacter("business")
+                ttcli.phone      = oJsonRespObj:getCharacter("phone")
+                ttcli.city       = oJsonRespObj:getCharacter("city")
+                ttcli.state      = oJsonRespObj:getCharacter("state")
+                ttcli.number     = oJsonRespObj:getCharacter("number")
+                ttcli.street     = oJsonRespObj:getCharacter("street")
+                .
             MESSAGE "Leitura de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
         end.
         IF oResp:StatusCode eq 401 THEN 
@@ -1345,10 +1313,10 @@ FUNCTION Fc-Token RETURNS LOGICAL
     
     /* Converte o payload decodificado para JsonObject e extrai o 'sub' */
     oJsonPayload = CAST(myParser:Parse(lcDecoded),JsonObject).
-    ASSIGN user_id = oJsonPayload:GetCharacter("sub"). /* ARMAZENA O ID */
+    ASSIGN id = oJsonPayload:GetCharacter("sub"). /* ARMAZENA O ID */
     
-    /* Remove a mensagem de debug desnecessária */
-     MESSAGE user_id VIEW-AS ALERT-BOX. 
+    /* mensagem de debug */
+     MESSAGE id VIEW-AS ALERT-BOX. 
 
     RETURN TRUE.
 END FUNCTION.
