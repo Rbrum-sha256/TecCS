@@ -17,7 +17,14 @@ public class SecurityConfig {
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
-
+    @Override 
+    public  void  addCorsMappings (CorsRegistry registry) { 
+        registry.addMapping( "/**" ) 
+                .allowedOriginPatterns( "*" ) // Adicione a URL do cliente aqui
+                 .allowedMethods( "GET" , "POST" , "PUT" , "DELETE" , "OPTIONS" ) 
+                .allowedHeaders( "*" ) 
+                .allowCredentials( true ); 
+    } 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
