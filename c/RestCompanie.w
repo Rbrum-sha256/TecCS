@@ -1,5 +1,7 @@
 &ANALYZE-SUSPEND _VERSION-NUMBER AB_v10r12 GUI
 &ANALYZE-RESUME
+/* Connected Databases 
+*/
 &Scoped-define WINDOW-NAME Win-Client
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _DEFINITIONS Win-Client 
 /*------------------------------------------------------------------------
@@ -30,39 +32,34 @@
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
      
-using OpenEdge.Net.HTTP.IHttpClientLibrary.
-using OpenEdge.Net.HTTP.ConfigBuilder.
-using OpenEdge.Net.HTTP.ClientBuilder.
-using OpenEdge.Net.HTTP.Credentials.
-using OpenEdge.Net.HTTP.IHttpClient.
-using OpenEdge.Net.HTTP.IHttpRequest.
-using OpenEdge.Net.HTTP.RequestBuilder.
-using OpenEdge.Net.HTTP.IHttpResponse.
-USING OpenEdge.Net.HTTP.*.
-using OpenEdge.Net.URI.
+USING OpenEdge.Core.Util.Token FROM PROPATH.
+USING OpenEdge.Net.HTTP.ClientBuilder FROM PROPATH.
+USING OpenEdge.Net.HTTP.Credentials FROM PROPATH.
+USING OpenEdge.Net.HTTP.IHttpClient FROM PROPATH.
+USING OpenEdge.Net.HTTP.IHttpRequest FROM PROPATH.
+USING OpenEdge.Net.HTTP.IHttpResponse FROM PROPATH.
+USING OpenEdge.Net.HTTP.RequestBuilder FROM PROPATH.
+USING OpenEdge.Net.URI FROM PROPATH.
+USING Progress.Json.ObjectModel.JsonArray FROM PROPATH.
+USING Progress.Json.ObjectModel.JsonObject FROM PROPATH.
 
-USING OpenEdge.Core.Memptr FROM PROPATH.
-USING Progress.Json.ObjectModel.*.
-using Progress.Json.ObjectModel.JsonObject.
-using Progress.Json.ObjectModel.JsonArray.
-using Progress.Json.ObjectModel.ObjectModelParser.
-USING OpenEdge.Net.HTTP.Filter.Writer.RequestWriterBuilder FROM PROPATH.
-using Progress.Lang.*.
 CREATE WIDGET-POOL.
 
 /* ***************************  Definitions  ************************** */
 
 /* Parameters Definitions ---                                           */
 DEFINE STREAM sJson.    
-def temp-table ttCli
-    field name       as char
-    field username   as char
-    field password   as char
-    field email      as char
-    field phone      as char
-    field experience as char
-    field education  as char
-    .   
+def temp-table ttjob
+    field id        as int
+    field titulo    as char
+    field area      as char
+    field descricao as char
+    field estado    as char
+    field cidade    as char
+    field salario   as decimal
+    field contato   as char
+    field compania  as char
+. 
 def temp-table ttCom
     field name     as char
     field business as char
@@ -74,6 +71,14 @@ def temp-table ttCom
     field state    as char
     field email    as char
     field phone    as char
+    . 
+def temp-table ttCli
+    field id         as int
+    field name       as char
+    field email      as char
+    field phone      as char
+    field experience as char
+    field education  as char
     . 
 /* Local Variable Definition ---                                        */
 def    var      oClient        as IHttpClient   no-undo.
@@ -92,7 +97,9 @@ DEFINE VARIABLE expira_em      AS INT64         NO-UNDO.
 DEFINE VARIABLE mensagem       AS CHARACTER     NO-UNDO.
 DEFINE VARIABLE codigo         AS CHARACTER     NO-UNDO.
 DEFINE VARIABLE detalhes       AS CHARACTER     NO-UNDO.
-DEFINE VARIABLE user_id        AS character     NO-UNDO.  
+DEFINE VARIABLE user_id        AS character     NO-UNDO.
+DEFINE VARIABLE job_id          AS CHARACTER NO-UNDO.  
+DEFINE VARIABLE id              AS integer NO-UNDO. 
     
 DEFINE VARIABLE i              AS INTEGER       NO-UNDO.
 DEFINE VARIABLE op-CRUD        AS integer       NO-UNDO.
@@ -117,20 +124,44 @@ DEFINE VARIABLE rle            AS CHARACTER     NO-UNDO.
 
 /* Name of designated FRAME-NAME and/or first browse and/or first query */
 &Scoped-define FRAME-NAME frm-home
+&Scoped-define BROWSE-NAME brw-cand
 
-/* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS RECT-12 RECT-13 RECT-14 f-Titulo f-area ~
-f-salario f-dsc f-Cid f-est 
-&Scoped-Define DISPLAYED-OBJECTS f-Titulo f-area f-salario f-dsc f-Cid ~
-f-est 
+/* Internal Tables (found by Frame, Query & Browse Queries)             */
+&Scoped-define INTERNAL-TABLES ttCli ttjob
+
+/* Definitions for BROWSE brw-cand                                      */
+&Scoped-define FIELDS-IN-QUERY-brw-cand ttcli   
+&Scoped-define ENABLED-FIELDS-IN-QUERY-brw-cand   
+&Scoped-define SELF-NAME brw-cand
+&Scoped-define QUERY-STRING-brw-cand FOR EACH ttCli
+&Scoped-define OPEN-QUERY-brw-cand OPEN QUERY {&SELF-NAME} FOR EACH ttCli.
+&Scoped-define TABLES-IN-QUERY-brw-cand ttCli
+&Scoped-define FIRST-TABLE-IN-QUERY-brw-cand ttCli
+
+
+/* Definitions for BROWSE brw-vagas                                     */
+&Scoped-define FIELDS-IN-QUERY-brw-vagas ttjob   
+&Scoped-define ENABLED-FIELDS-IN-QUERY-brw-vagas   
+&Scoped-define SELF-NAME brw-vagas
+&Scoped-define QUERY-STRING-brw-vagas FOR EACH ttjob
+&Scoped-define OPEN-QUERY-brw-vagas OPEN QUERY {&SELF-NAME} FOR EACH ttjob.
+&Scoped-define TABLES-IN-QUERY-brw-vagas ttjob
+&Scoped-define FIRST-TABLE-IN-QUERY-brw-vagas ttjob
+
+
+/* Definitions for FRAME frm-cl                                         */
+&Scoped-define OPEN-BROWSERS-IN-QUERY-frm-cl ~
+    ~{&OPEN-QUERY-brw-cand}
+
+/* Definitions for FRAME frm-vl                                         */
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
-&Scoped-define List-2 f-Titulo f-Unome f-Titulo 
-&Scoped-define List-4 f-dsc f-cidade f-dsc f-est 
-&Scoped-define List-6 f-Titulo f-Unome f-area f-nome f-Titulo f-salario ~
-f-senha f-area f-dsc f-Cid f-rua f-salario f-cidade f-dsc f-Est f-Cid f-est ~
-f-email f-est f-telefone 
+&Scoped-define List-2 f-Titulo f-Titulo f-Unome 
+&Scoped-define List-4 f-dsc f-dsc f-cidade f-est f-comp 
+&Scoped-define List-6 f-Titulo f-area f-salario f-dsc f-Titulo f-Unome ~
+f-area f-Cid f-nome f-salario f-senha f-dsc f-est f-Cid f-rua f-cidade ~
+f-est f-cont f-est f-comp f-email f-telefone 
 
 /* _UIB-PREPROCESSOR-BLOCK-END */
 &ANALYZE-RESUME
@@ -187,6 +218,20 @@ FUNCTION Fc-Conectar RETURNS LOGICAL
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Erro Win-Client 
+FUNCTION Fc-Erro RETURNS LOGICAL
+  (  ) FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Feedback Win-Client 
+FUNCTION Fc-Feedback RETURNS LOGICAL
+  (  ) FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Inicia Win-Client 
 FUNCTION Fc-Inicia RETURNS LOGICAL
     ( /* parameter-definitions */ )  FORWARD.
@@ -204,6 +249,20 @@ FUNCTION Fc-Le RETURNS LOGICAL
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-Ler Win-Client 
 FUNCTION Fc-Ler RETURNS LOGICAL
     (  ) FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD FC-LerVagas Win-Client 
+FUNCTION FC-LerVagas RETURNS LOGICAL
+  (  ) FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-ListarCandiadtos Win-Client 
+FUNCTION Fc-ListarCandiadtos RETURNS LOGICAL
+  (  ) FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -236,6 +295,13 @@ FUNCTION Fc-Trata RETURNS LOGICAL
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD Fc-VV Win-Client 
+FUNCTION Fc-VV RETURNS LOGICAL
+  (  ) FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 
 /* ***********************  Control Definitions  ********************** */
 
@@ -249,10 +315,15 @@ DEFINE SUB-MENU m_Home
        RULE
        MENU-ITEM m_Conectar     LABEL "&Conectar"     .
 
+DEFINE SUB-MENU m_Jobs 
+       MENU-ITEM m_CRUD         LABEL "&CRUD"         
+       MENU-ITEM m_List         LABEL "&List"         
+       MENU-ITEM m_Candidatos   LABEL "&Candidatos"   .
+
 DEFINE MENU MENU-BAR-C-Win MENUBAR
        SUB-MENU  m_Home         LABEL "&Home"         
-       MENU-ITEM m_User         LABEL "&User"         
-       MENU-ITEM m_Companie     LABEL "&Companie"     .
+       MENU-ITEM m_Companie     LABEL "&Companie"     
+       SUB-MENU  m_Jobs         LABEL "&Jobs"         .
 
 
 /* Definitions of the field level widgets                               */
@@ -274,17 +345,12 @@ DEFINE VARIABLE f-port AS CHARACTER FORMAT "x(10)":U INITIAL "PORT"
 DEFINE VARIABLE f-role AS CHARACTER 
      VIEW-AS RADIO-SET HORIZONTAL
      RADIO-BUTTONS 
-          "User", "1",
-"Company", "2"
-     SIZE 26 BY 1.19 NO-UNDO.
+          "Company", "2"
+     SIZE 15 BY 1.19 NO-UNDO.
 
 DEFINE RECTANGLE RECT-8
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
      SIZE 60 BY 10.
-
-DEFINE BUTTON bt-ant 
-     LABEL "<" 
-     SIZE 8 BY 1.91.
 
 DEFINE BUTTON bt-C 
      LABEL "bt-C" 
@@ -294,14 +360,6 @@ DEFINE BUTTON bt-D
      LABEL "bt-D" 
      SIZE 8 BY 1.91 TOOLTIP "Elimina Registro".
 
-DEFINE BUTTON bt-pri 
-     LABEL "<<" 
-     SIZE 8 BY 1.91.
-
-DEFINE BUTTON bt-pro 
-     LABEL ">" 
-     SIZE 8 BY 1.91.
-
 DEFINE BUTTON bt-R 
      LABEL "bt-R" 
      SIZE 8 BY 1.91.
@@ -310,9 +368,9 @@ DEFINE BUTTON bt-U
      LABEL "bt-U" 
      SIZE 8 BY 1.91.
 
-DEFINE BUTTON bt-ult 
-     LABEL ">>" 
-     SIZE 8 BY 1.91 TOOLTIP "Elimina Registro".
+DEFINE BUTTON bt-vol-3 
+     LABEL "voltar" 
+     SIZE 15 BY .71.
 
 DEFINE VARIABLE f-cidade AS CHARACTER FORMAT "X(256)":U 
      LABEL "Cidade" 
@@ -379,47 +437,17 @@ DEFINE RECTANGLE RECT-9
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
      SIZE 96 BY 4.05.
 
-DEFINE VARIABLE f-area AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Area" 
+DEFINE BUTTON bt-feed 
+     LABEL "Feedback" 
+     SIZE 15 BY 1.14.
+
+DEFINE BUTTON bt-vol 
+     LABEL "voltar" 
+     SIZE 15 BY 1.14.
+
+DEFINE VARIABLE f-mensagem AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS FILL-IN 
-     SIZE 42 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-Cid AS CHARACTER FORMAT "X(30)":U 
-     LABEL "Cidade" 
-     VIEW-AS FILL-IN 
-     SIZE 39 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-dsc AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Descricao" 
-     VIEW-AS FILL-IN 
-     SIZE 59.8 BY 2.14
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-salario AS DECIMAL FORMAT "->>,>>9.99":U INITIAL 0 
-     LABEL "Saario" 
-     VIEW-AS FILL-IN 
-     SIZE 22 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE VARIABLE f-Titulo AS CHARACTER FORMAT "X(256)":U 
-     LABEL "Titulo" 
-     VIEW-AS FILL-IN 
-     SIZE 53.4 BY 1
-     FGCOLOR 9  NO-UNDO.
-
-DEFINE RECTANGLE RECT-12
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 79 BY 4.29.
-
-DEFINE RECTANGLE RECT-13
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 79 BY 4.05.
-
-DEFINE RECTANGLE RECT-14
-     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 79 BY 2.86.
+     SIZE 56 BY 3.57 NO-UNDO.
 
 DEFINE BUTTON bt-L 
      LABEL "Login" 
@@ -443,13 +471,13 @@ DEFINE RECTANGLE RECT-10
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
      SIZE 52 BY 7.38.
 
-DEFINE BUTTON bt-sub 
+DEFINE BUTTON bt-erro 
      LABEL "" 
      SIZE 10 BY .71.
 
-DEFINE VARIABLE f-sub AS CHARACTER FORMAT "X(256)":U INITIAL "0" 
+DEFINE VARIABLE f-erro AS CHARACTER FORMAT "X(256)":U INITIAL "0" 
      VIEW-AS FILL-IN 
-     SIZE 11 BY 1.1 NO-UNDO.
+     SIZE 40 BY 1.1 NO-UNDO.
 
 DEFINE VARIABLE fi-host AS CHARACTER FORMAT "X(15)":U 
      LABEL "host" 
@@ -475,24 +503,98 @@ DEFINE VARIABLE fi-sub AS CHARACTER FORMAT "X(20)":U
      SIZE 20 BY .62
      FGCOLOR 10  NO-UNDO.
 
+DEFINE VARIABLE f-area AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Area" 
+     VIEW-AS FILL-IN 
+     SIZE 42 BY 1
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-Cid AS CHARACTER FORMAT "X(30)":U 
+     LABEL "Cidade" 
+     VIEW-AS FILL-IN 
+     SIZE 39 BY 1
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-comp AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Compania" 
+      VIEW-AS TEXT 
+     SIZE 58.4 BY .62
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-cont AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Contato" 
+      VIEW-AS TEXT 
+     SIZE 44 BY .62
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-dsc AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Descricao" 
+     VIEW-AS FILL-IN 
+     SIZE 58.4 BY 2.14
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-salario AS DECIMAL FORMAT "->>,>>9.99":U INITIAL 0 
+     LABEL "Salario" 
+     VIEW-AS FILL-IN 
+     SIZE 22 BY 1
+     FGCOLOR 9  NO-UNDO.
+
+DEFINE VARIABLE f-Titulo AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Titulo" 
+     VIEW-AS FILL-IN 
+     SIZE 53.4 BY 1
+     FGCOLOR 9  NO-UNDO.
+
 DEFINE RECTANGLE RECT-15
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
      SIZE 79 BY 4.29.
 
 DEFINE RECTANGLE RECT-16
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
-     SIZE 79 BY 4.05.
+     SIZE 79 BY 3.1.
 
 DEFINE RECTANGLE RECT-17
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
      SIZE 79 BY 2.86.
 
+DEFINE BUTTON bt-LV 
+     LABEL "buscar" 
+     SIZE 15 BY 1.14.
+
+/* Query definitions                                                    */
+&ANALYZE-SUSPEND
+DEFINE QUERY brw-cand FOR 
+      ttCli SCROLLING.
+
+DEFINE QUERY brw-vagas FOR 
+      ttjob SCROLLING.
+&ANALYZE-RESUME
+
+/* Browse definitions                                                   */
+DEFINE BROWSE brw-cand
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _DISPLAY-FIELDS brw-cand Win-Client _FREEFORM
+  QUERY brw-cand DISPLAY
+      ttcli
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+    WITH NO-ROW-MARKERS SEPARATORS MULTIPLE SIZE 101 BY 10.91
+         TITLE "Browse 1" ROW-HEIGHT-CHARS .76 FIT-LAST-COLUMN.
+
+DEFINE BROWSE brw-vagas
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _DISPLAY-FIELDS brw-vagas Win-Client _FREEFORM
+  QUERY brw-vagas DISPLAY
+      ttjob
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+    WITH NO-ROW-MARKERS SEPARATORS SIZE 99 BY 8.1
+         TITLE "Browse 1" ROW-HEIGHT-CHARS .76 FIT-LAST-COLUMN.
+
 
 /* ************************  Frame Definitions  *********************** */
 
 DEFINE FRAME frm-rodape
-     f-sub AT ROW 1.95 COL 88 COLON-ALIGNED NO-LABEL WIDGET-ID 8
-     bt-sub AT ROW 3.14 COL 90.6 WIDGET-ID 10
+     f-erro AT ROW 1.95 COL 59 COLON-ALIGNED NO-LABEL WIDGET-ID 8
+     bt-erro AT ROW 3.14 COL 90.6 WIDGET-ID 10
      fi-host AT ROW 1.71 COL 9.8 COLON-ALIGNED WIDGET-ID 2
      fi-port AT ROW 2.81 COL 9.8 COLON-ALIGNED WIDGET-ID 4
      fi-role AT ROW 3.86 COL 9.8 COLON-ALIGNED WIDGET-ID 6
@@ -504,10 +606,6 @@ DEFINE FRAME frm-rodape
          FONT 3 WIDGET-ID 700.
 
 DEFINE FRAME frm-cabec
-     bt-pri AT ROW 1.24 COL 3 WIDGET-ID 34
-     bt-ant AT ROW 1.24 COL 11.6 WIDGET-ID 38
-     bt-pro AT ROW 1.24 COL 20.2 WIDGET-ID 40
-     bt-ult AT ROW 1.24 COL 28.8 WIDGET-ID 36
      bt-C AT ROW 1.24 COL 60.4 WIDGET-ID 32
      bt-R AT ROW 1.24 COL 69 WIDGET-ID 30
      bt-U AT ROW 1.24 COL 77.6 WIDGET-ID 2
@@ -536,19 +634,6 @@ DEFINE FRAME frm-E
          SIZE 101.8 BY 14.81 WIDGET-ID 900.
 
 DEFINE FRAME frm-home
-     f-Titulo AT ROW 2.52 COL 21.6 COLON-ALIGNED WIDGET-ID 6
-     f-area AT ROW 3.62 COL 21.6 COLON-ALIGNED WIDGET-ID 4
-     f-salario AT ROW 4.67 COL 21.6 COLON-ALIGNED WIDGET-ID 8
-     f-dsc AT ROW 6.57 COL 21.4 COLON-ALIGNED WIDGET-ID 16
-     f-Cid AT ROW 9.57 COL 21.6 COLON-ALIGNED WIDGET-ID 10
-     f-est AT ROW 10.67 COL 21.6 COLON-ALIGNED WIDGET-ID 14
-          LABEL "Estado" FORMAT "X(256)":U
-          VIEW-AS FILL-IN 
-          SIZE 44 BY .95
-          FGCOLOR 9 
-     RECT-12 AT ROW 1.95 COL 11.6 WIDGET-ID 34
-     RECT-13 AT ROW 9.1 COL 11.6 WIDGET-ID 36
-     RECT-14 AT ROW 6.24 COL 11.6 WIDGET-ID 38
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 3.48
@@ -571,55 +656,95 @@ DEFINE FRAME frm-L
 DEFINE FRAME frm-C
      f-host AT ROW 5.05 COL 35 COLON-ALIGNED NO-LABEL WIDGET-ID 4
      f-port AT ROW 6.48 COL 35 COLON-ALIGNED NO-LABEL WIDGET-ID 6
-     f-role AT ROW 7.91 COL 39 NO-LABEL WIDGET-ID 12
+     f-role AT ROW 7.91 COL 45 NO-LABEL WIDGET-ID 12
      bt-con AT ROW 9.81 COL 44.6 WIDGET-ID 8
      RECT-8 AT ROW 2.38 COL 21 WIDGET-ID 10
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COLUMN 1 ROW 3.14
-         SIZE 102 BY 12.38
+         AT COLUMN 1 ROW 1
+         SIZE 102 BY 14.52
          FONT 3
          TITLE "" WIDGET-ID 600.
 
 DEFINE FRAME frm-v
-     f-Titulo AT ROW 2.52 COL 21.6 COLON-ALIGNED WIDGET-ID 6
-          LABEL "Titulo" FORMAT "X(256)":U
-          VIEW-AS FILL-IN 
-          SIZE 53.4 BY 1
-          FGCOLOR 9 
-     f-area AT ROW 3.62 COL 21.6 COLON-ALIGNED WIDGET-ID 4
-          LABEL "Area" FORMAT "X(256)":U
-          VIEW-AS FILL-IN 
-          SIZE 42 BY 1
-          FGCOLOR 9 
-     f-salario AT ROW 4.67 COL 21.6 COLON-ALIGNED WIDGET-ID 8
-          LABEL "Saario" FORMAT "->>,>>9.99":U
-          VIEW-AS FILL-IN 
-          SIZE 22 BY 1
-          FGCOLOR 9 
-     f-dsc AT ROW 6.57 COL 21.4 COLON-ALIGNED WIDGET-ID 16
-          LABEL "Descricao" FORMAT "X(256)":U
-          VIEW-AS FILL-IN 
-          SIZE 59.8 BY 2.14
-          FGCOLOR 9 
-     f-Cid AT ROW 9.57 COL 21.6 COLON-ALIGNED WIDGET-ID 10
-          LABEL "Cidade" FORMAT "X(30)":U
-          VIEW-AS FILL-IN 
-          SIZE 39 BY 1
-          FGCOLOR 9 
-     f-Est AT ROW 10.67 COL 21.6 COLON-ALIGNED WIDGET-ID 14
+     f-Titulo AT ROW 2.05 COL 21 COLON-ALIGNED WIDGET-ID 6
+     f-area AT ROW 3.14 COL 21 COLON-ALIGNED WIDGET-ID 4
+     f-salario AT ROW 4.19 COL 21 COLON-ALIGNED WIDGET-ID 8
+     f-dsc AT ROW 6 COL 21.4 COLON-ALIGNED WIDGET-ID 16
+     f-Cid AT ROW 9.1 COL 21 COLON-ALIGNED WIDGET-ID 10
+     f-est AT ROW 10.19 COL 21 COLON-ALIGNED WIDGET-ID 14
           LABEL "Estado" FORMAT "X(256)":U
           VIEW-AS FILL-IN 
           SIZE 44 BY .95
           FGCOLOR 9 
-     RECT-15 AT ROW 1.95 COL 11.6 WIDGET-ID 34
-     RECT-16 AT ROW 9.1 COL 11.6 WIDGET-ID 36
-     RECT-17 AT ROW 6.24 COL 11.6 WIDGET-ID 38
+     f-cont AT ROW 11.95 COL 21 COLON-ALIGNED WIDGET-ID 46
+     f-comp AT ROW 13.05 COL 22.8 COLON-ALIGNED WIDGET-ID 48
+     RECT-15 AT ROW 1.48 COL 11 WIDGET-ID 34
+     RECT-16 AT ROW 8.62 COL 11 WIDGET-ID 36
+     RECT-17 AT ROW 5.76 COL 11 WIDGET-ID 38
     WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COLUMN 1 ROW 3.48
          SIZE 101.6 BY 14.62
          TITLE "Frame D" WIDGET-ID 1000.
+
+DEFINE FRAME frm-vl
+     f-Titulo AT ROW 1.24 COL 9.2 COLON-ALIGNED WIDGET-ID 12
+          LABEL "Titulo" FORMAT "X(256)":U
+          VIEW-AS FILL-IN 
+          SIZE 26.6 BY 1
+          FGCOLOR 9 
+     f-area AT ROW 1.24 COL 42.2 COLON-ALIGNED WIDGET-ID 10
+          LABEL "Area" FORMAT "X(256)":U
+          VIEW-AS FILL-IN 
+          SIZE 27.4 BY 1
+          FGCOLOR 9 
+     f-salario AT ROW 1.24 COL 77 COLON-ALIGNED WIDGET-ID 8
+          LABEL "Salario" FORMAT "->>,>>9.99":U
+          VIEW-AS FILL-IN 
+          SIZE 18.4 BY 1
+          FGCOLOR 9 
+     f-dsc AT ROW 2.43 COL 13.6 COLON-ALIGNED WIDGET-ID 16
+          LABEL "Descricao" FORMAT "X(256)":U
+          VIEW-AS FILL-IN 
+          SIZE 53.2 BY 1.19
+          FGCOLOR 9 
+     f-Cid AT ROW 3.67 COL 10.8 COLON-ALIGNED WIDGET-ID 18
+          LABEL "Cidade" FORMAT "X(30)":U
+          VIEW-AS FILL-IN 
+          SIZE 30.2 BY 1
+          FGCOLOR 9 
+     bt-LV AT ROW 4.57 COL 82 WIDGET-ID 22
+     f-est AT ROW 4.76 COL 10.8 COLON-ALIGNED WIDGET-ID 20
+          LABEL "Estado" FORMAT "X(256)":U
+          VIEW-AS FILL-IN 
+          SIZE 9.2 BY .95
+          FGCOLOR 9 
+     brw-vagas AT ROW 6 COL 2 WIDGET-ID 1600
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+         SIDE-LABELS NO-UNDERLINE THREE-D 
+         AT COLUMN 1 ROW 3.48
+         SIZE 102 BY 14.76
+         TITLE "Frame A" WIDGET-ID 1100.
+
+DEFINE FRAME frm-cl
+     bt-vol-3 AT ROW 1.19 COL 3 WIDGET-ID 10
+     brw-cand AT ROW 2.19 COL 1 WIDGET-ID 1500
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+         SIDE-LABELS NO-UNDERLINE THREE-D 
+         AT COLUMN 1.2 ROW 4.52
+         SIZE 101.8 BY 13.1
+         TITLE "Frame C" WIDGET-ID 1400.
+
+DEFINE FRAME frm-F
+     f-mensagem AT ROW 1.71 COL 3 COLON-ALIGNED NO-LABEL WIDGET-ID 2
+     bt-vol AT ROW 6 COL 7 WIDGET-ID 4
+     bt-feed AT ROW 6 COL 44.2 WIDGET-ID 6
+    WITH 1 DOWN KEEP-TAB-ORDER OVERLAY 
+         SIDE-LABELS NO-UNDERLINE THREE-D 
+         AT COLUMN 20 ROW 7.76
+         SIZE 63.4 BY 7.38
+         TITLE "Feedback" WIDGET-ID 1300.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -640,7 +765,7 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
          HIDDEN             = YES
          TITLE              = "Client"
          HEIGHT             = 21.1
-         WIDTH              = 101.8
+         WIDTH              = 102
          MAX-HEIGHT         = 22.91
          MAX-WIDTH          = 190.6
          VIRTUAL-HEIGHT     = 22.91
@@ -676,6 +801,15 @@ ASSIGN FRAME frm-C:FRAME = FRAME frm-home:HANDLE
                                                                         */
 /* SETTINGS FOR FRAME frm-cabec
                                                                         */
+/* SETTINGS FOR FRAME frm-cl
+                                                                        */
+/* BROWSE-TAB brw-cand bt-vol-3 frm-cl */
+ASSIGN 
+       brw-cand:RESIZABLE IN FRAME frm-cl              = TRUE
+       brw-cand:ALLOW-COLUMN-SEARCHING IN FRAME frm-cl = TRUE
+       brw-cand:COLUMN-RESIZABLE IN FRAME frm-cl       = TRUE
+       brw-cand:ROW-RESIZABLE IN FRAME frm-cl          = TRUE.
+
 /* SETTINGS FOR FRAME frm-E
                                                                         */
 /* SETTINGS FOR FILL-IN f-cidade IN FRAME frm-E
@@ -694,20 +828,16 @@ ASSIGN FRAME frm-C:FRAME = FRAME frm-home:HANDLE
    6                                                                    */
 /* SETTINGS FOR FILL-IN f-Unome IN FRAME frm-E
    2 6                                                                  */
+/* SETTINGS FOR FRAME frm-F
+                                                                        */
 /* SETTINGS FOR FRAME frm-home
    FRAME-NAME                                                           */
-/* SETTINGS FOR FILL-IN f-area IN FRAME frm-home
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-Cid IN FRAME frm-home
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-dsc IN FRAME frm-home
-   4 6                                                                  */
-/* SETTINGS FOR FILL-IN f-est IN FRAME frm-home
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-salario IN FRAME frm-home
-   6                                                                    */
-/* SETTINGS FOR FILL-IN f-Titulo IN FRAME frm-home
-   2 6                                                                  */
+
+DEFINE VARIABLE XXTABVALXX AS LOGICAL NO-UNDO.
+
+ASSIGN XXTABVALXX = FRAME frm-C:MOVE-BEFORE-TAB-ITEM (FRAME frm-L:HANDLE)
+/* END-ASSIGN-TABS */.
+
 /* SETTINGS FOR FRAME frm-L
                                                                         */
 /* SETTINGS FOR FILL-IN f-UnomeL IN FRAME frm-L
@@ -732,18 +862,68 @@ ASSIGN
    6                                                                    */
 /* SETTINGS FOR FILL-IN f-Cid IN FRAME frm-v
    6                                                                    */
+/* SETTINGS FOR FILL-IN f-comp IN FRAME frm-v
+   4 6                                                                  */
+ASSIGN 
+       f-comp:READ-ONLY IN FRAME frm-v        = TRUE.
+
+/* SETTINGS FOR FILL-IN f-cont IN FRAME frm-v
+   6                                                                    */
+ASSIGN 
+       f-cont:READ-ONLY IN FRAME frm-v        = TRUE.
+
 /* SETTINGS FOR FILL-IN f-dsc IN FRAME frm-v
    4 6                                                                  */
-/* SETTINGS FOR FILL-IN f-Est IN FRAME frm-v
+/* SETTINGS FOR FILL-IN f-est IN FRAME frm-v
    6                                                                    */
 /* SETTINGS FOR FILL-IN f-salario IN FRAME frm-v
    6                                                                    */
 /* SETTINGS FOR FILL-IN f-Titulo IN FRAME frm-v
    2 6                                                                  */
+/* SETTINGS FOR FRAME frm-vl
+                                                                        */
+/* BROWSE-TAB brw-vagas f-est frm-vl */
+ASSIGN 
+       brw-vagas:ALLOW-COLUMN-SEARCHING IN FRAME frm-vl = TRUE
+       brw-vagas:COLUMN-RESIZABLE IN FRAME frm-vl       = TRUE.
+
+/* SETTINGS FOR FILL-IN f-area IN FRAME frm-vl
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-Cid IN FRAME frm-vl
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-dsc IN FRAME frm-vl
+   4 6                                                                  */
+/* SETTINGS FOR FILL-IN f-est IN FRAME frm-vl
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-salario IN FRAME frm-vl
+   6                                                                    */
+/* SETTINGS FOR FILL-IN f-Titulo IN FRAME frm-vl
+   2 6                                                                  */
 IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(Win-Client)
 THEN Win-Client:HIDDEN = yes.
 
 /* _RUN-TIME-ATTRIBUTES-END */
+&ANALYZE-RESUME
+
+
+/* Setting information for Queries and Browse Widgets fields            */
+
+&ANALYZE-SUSPEND _QUERY-BLOCK BROWSE brw-cand
+/* Query rebuild information for BROWSE brw-cand
+     _START_FREEFORM
+OPEN QUERY {&SELF-NAME} FOR EACH ttCli.
+     _END_FREEFORM
+     _Query            is OPENED
+*/  /* BROWSE brw-cand */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _QUERY-BLOCK BROWSE brw-vagas
+/* Query rebuild information for BROWSE brw-vagas
+     _START_FREEFORM
+OPEN QUERY {&SELF-NAME} FOR EACH ttjob.
+     _END_FREEFORM
+     _Query            is NOT OPENED
+*/  /* BROWSE brw-vagas */
 &ANALYZE-RESUME
 
  
@@ -779,25 +959,53 @@ DO:
 &ANALYZE-RESUME
 
 
-&Scoped-define FRAME-NAME frm-cabec
-&Scoped-define SELF-NAME bt-ant
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-ant Win-Client
-ON CHOOSE OF bt-ant IN FRAME frm-cabec /* < */
+&Scoped-define BROWSE-NAME brw-cand
+&Scoped-define FRAME-NAME frm-cl
+&Scoped-define SELF-NAME brw-cand
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL brw-cand Win-Client
+ON LEFT-MOUSE-DBLCLICK OF brw-cand IN FRAME frm-cl /* Browse 1 */
 DO:
-        IF rle eq "1" THEN 
-            Fc-Ler().
+       
+         if num-results("brw-cand") ne 0 then 
+         do:
+            id = input browse brw-cand ttcli.id .
+             frame frm-f:hidden = false. 
+         end.
+         ELSE
+            MESSAGE "campos do Browe vazios!." VIEW-AS ALERT-BOX.  
+END.
 
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define BROWSE-NAME brw-vagas
+&Scoped-define FRAME-NAME frm-vl
+&Scoped-define SELF-NAME brw-vagas
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL brw-vagas Win-Client
+ON LEFT-MOUSE-DBLCLICK OF brw-vagas IN FRAME frm-vl /* Browse 1 */
+DO:  
+     frame frm-cl:hidden = false.  
+     if num-results("brw-vagas") ne 0 then 
+     do:
+        job_id = input browse brw-vagas ttjob.id .
+        Fc-ListarCandiadtos(). 
+        {&OPEN-QUERY-brw-vagas} 
+     end.
+     ELSE
+        MESSAGE "campos do Browe vazios!." VIEW-AS ALERT-BOX.  
     END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 
+&Scoped-define FRAME-NAME frm-cabec
 &Scoped-define SELF-NAME bt-C
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-C Win-Client
 ON CHOOSE OF bt-C IN FRAME frm-cabec /* bt-C */
 DO:
-        IF rle eq "1" THEN 
+        IF op-CRUD eq 2 THEN 
             Fc-Cadastrar().
         else
             Fc-Ca().
@@ -824,11 +1032,35 @@ DO:
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-D Win-Client
 ON CHOOSE OF bt-D IN FRAME frm-cabec /* bt-D */
 DO:
-        IF rle eq "1" THEN 
+        IF op-CRUD eq 2 THEN 
             Fc-Apagar().
         else 
             Fc-Ap().
     END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define FRAME-NAME frm-rodape
+&Scoped-define SELF-NAME bt-erro
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-erro Win-Client
+ON CHOOSE OF bt-erro IN FRAME frm-rodape
+DO:
+        Fc-Erro().
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define FRAME-NAME frm-F
+&Scoped-define SELF-NAME bt-feed
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-feed Win-Client
+ON CHOOSE OF bt-feed IN FRAME frm-F /* Feedback */
+DO:
+    Fc-Feedback().  
+END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -846,39 +1078,29 @@ DO:
 &ANALYZE-RESUME
 
 
+&Scoped-define FRAME-NAME frm-vl
+&Scoped-define SELF-NAME bt-LV
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-LV Win-Client
+ON CHOOSE OF bt-LV IN FRAME frm-vl /* buscar */
+DO:
+   Fc-LerVagas(). 
+   {&OPEN-QUERY-brw-vagas} 
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define FRAME-NAME frm-cabec
-&Scoped-define SELF-NAME bt-pri
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-pri Win-Client
-ON CHOOSE OF bt-pri IN FRAME frm-cabec /* << */
-DO:
-        IF rle eq "1" THEN 
-            Fc-Cadastrar().
-
-    END.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-
-&Scoped-define SELF-NAME bt-pro
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-pro Win-Client
-ON CHOOSE OF bt-pro IN FRAME frm-cabec /* > */
-DO:
-        IF rle eq "1" THEN 
-            Fc-Atualizar().
-
-    END.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-
 &Scoped-define SELF-NAME bt-R
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-R Win-Client
 ON CHOOSE OF bt-R IN FRAME frm-cabec /* bt-R */
 DO:
-        IF rle eq "1" THEN 
+        IF op-CRUD eq 2 THEN  
+        do:
             Fc-Ler().
+            Fc-VV().
+        end.
         else 
             Fc-Le().
     END.
@@ -887,43 +1109,14 @@ DO:
 &ANALYZE-RESUME
 
 
-&Scoped-define FRAME-NAME frm-rodape
-&Scoped-define SELF-NAME bt-sub
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-sub Win-Client
-ON CHOOSE OF bt-sub IN FRAME frm-rodape
-DO:
-        assign 
-            user_id = input frame frm-rodape f-sub.
-        display user_id @ fi-sub 
-            with frame frm-rodape.
-    END.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-
-&Scoped-define FRAME-NAME frm-cabec
 &Scoped-define SELF-NAME bt-U
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-U Win-Client
 ON CHOOSE OF bt-U IN FRAME frm-cabec /* bt-U */
 DO:
-        IF rle eq "1" THEN 
+        IF op-CRUD eq 2 THEN 
             Fc-Atualizar().
         else 
             Fc-At().
-    END.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-
-&Scoped-define SELF-NAME bt-ult
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-ult Win-Client
-ON CHOOSE OF bt-ult IN FRAME frm-cabec /* >> */
-DO:
-        IF rle eq "1" THEN 
-            Fc-Apagar().
-
     END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -935,8 +1128,8 @@ DO:
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-VC Win-Client
 ON CHOOSE OF bt-VC IN FRAME frm-L /* Cadastrar */
 DO:
-        IF rle eq "1" THEN  
-            Fc-Cadastrar().
+        
+        Fc-Cadastrar().
 
         frame frm-L:hidden = true.
         frame frm-C:hidden = true.
@@ -946,14 +1139,46 @@ DO:
 &ANALYZE-RESUME
 
 
+&Scoped-define FRAME-NAME frm-F
+&Scoped-define SELF-NAME bt-vol
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-vol Win-Client
+ON CHOOSE OF bt-vol IN FRAME frm-F /* voltar */
+DO:
+        id = 0. 
+        frame frm-home:hidden = true.
+        frame frm-f:hidden = true.
+        frame frm-cl:hidden = false.    
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define FRAME-NAME frm-cl
+&Scoped-define SELF-NAME bt-vol-3
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL bt-vol-3 Win-Client
+ON CHOOSE OF bt-vol-3 IN FRAME frm-cl /* voltar */
+DO:
+        job_id = "0". 
+        frame frm-home:hidden = true.
+        frame frm-f:hidden = true.
+        frame frm-cl:hidden = true.
+        frame frm-vl:hidden = false.   
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME m_Companie
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Companie Win-Client
 ON CHOOSE OF MENU-ITEM m_Companie /* Companie */
 DO:
-        frame frm-e:hidden = false.
- 
+        frame frm-e:hidden = false. 
+        frame frm-v:hidden = true. 
+        frame frm-vl:hidden = true.
+        frame frm-cl:hidden = true.
         frame frm-home:hidden = true.
-
     END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -974,17 +1199,44 @@ DO:
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME m_CRUD
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_CRUD Win-Client
+ON CHOOSE OF MENU-ITEM m_CRUD /* CRUD */
+DO:
+        frame frm-e:hidden = true.   
+        frame frm-home:hidden = true.
+        frame frm-v:hidden = false.
+        op-CRUD = 2.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME m_Home
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Home Win-Client
 ON CHOOSE OF MENU m_Home /* Home */
 DO:
         frame frm-home:hidden = false.
         frame frm-e:hidden = true.
-
+        frame frm-v:hidden = true.
         frame frm-l:hidden = true.
         frame frm-c:hidden = true. 
-  
     END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME m_List
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_List Win-Client
+ON CHOOSE OF MENU-ITEM m_List /* List */
+DO:
+        frame frm-e:hidden = true.   
+        frame frm-home:hidden = true.
+        frame frm-v:hidden = true. 
+        frame frm-vl:hidden = false.
+END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -1015,21 +1267,8 @@ DO:
 &ANALYZE-RESUME
 
 
-&Scoped-define SELF-NAME m_User
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_User Win-Client
-ON CHOOSE OF MENU-ITEM m_User /* User */
-DO:
-
-        frame frm-e:hidden = true.   
-        frame frm-home:hidden = true.
-   
-    END.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-
 &Scoped-define FRAME-NAME frm-home
+&Scoped-define BROWSE-NAME brw-cand
 &UNDEFINE SELF-NAME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _MAIN-BLOCK Win-Client 
@@ -1099,7 +1338,12 @@ PROCEDURE enable_UI :
                These statements here are based on the "Other 
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
-  ENABLE bt-pri bt-ant bt-pro bt-ult bt-C bt-R bt-U bt-D 
+  DISPLAY f-host f-port f-role 
+      WITH FRAME frm-C IN WINDOW Win-Client.
+  ENABLE RECT-8 f-host f-port f-role bt-con 
+      WITH FRAME frm-C IN WINDOW Win-Client.
+  {&OPEN-BROWSERS-IN-QUERY-frm-C}
+  ENABLE bt-C bt-R bt-U bt-D 
       WITH FRAME frm-cabec IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-cabec}
   DISPLAY f-UnomeL f-senhaL 
@@ -1107,30 +1351,36 @@ PROCEDURE enable_UI :
   ENABLE RECT-10 f-UnomeL f-senhaL bt-L bt-VC 
       WITH FRAME frm-L IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-L}
-  DISPLAY f-host f-port f-role 
-      WITH FRAME frm-C IN WINDOW Win-Client.
-  ENABLE RECT-8 f-host f-port f-role bt-con 
-      WITH FRAME frm-C IN WINDOW Win-Client.
-  {&OPEN-BROWSERS-IN-QUERY-frm-C}
   DISPLAY f-Unome f-nome f-senha f-num f-rua f-cidade f-est f-email f-telefone 
       WITH FRAME frm-E IN WINDOW Win-Client.
   ENABLE RECT-7 RECT-9 RECT-11 f-Unome f-nome f-senha f-num f-rua f-cidade 
          f-est f-email f-telefone 
       WITH FRAME frm-E IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-E}
-  DISPLAY f-Titulo f-area f-salario f-dsc f-Cid f-est 
-      WITH FRAME frm-home IN WINDOW Win-Client.
-  ENABLE RECT-12 RECT-13 RECT-14 f-Titulo f-area f-salario f-dsc f-Cid f-est 
-      WITH FRAME frm-home IN WINDOW Win-Client.
+  VIEW FRAME frm-home IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-home}
-  DISPLAY f-Titulo f-area f-salario f-dsc f-Cid f-Est 
+  DISPLAY f-Titulo f-area f-salario f-dsc f-Cid f-est f-cont f-comp 
       WITH FRAME frm-v IN WINDOW Win-Client.
-  ENABLE RECT-15 RECT-16 RECT-17 f-Titulo f-area f-salario f-dsc f-Cid f-Est 
+  ENABLE RECT-15 RECT-16 RECT-17 f-Titulo f-area f-salario f-dsc f-Cid f-est 
+         f-cont f-comp 
       WITH FRAME frm-v IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-v}
-  DISPLAY f-sub fi-host fi-port fi-role fi-sub 
+  DISPLAY f-Titulo f-area f-salario f-dsc f-Cid f-est 
+      WITH FRAME frm-vl IN WINDOW Win-Client.
+  ENABLE f-Titulo f-area f-salario f-dsc f-Cid bt-LV f-est brw-vagas 
+      WITH FRAME frm-vl IN WINDOW Win-Client.
+  {&OPEN-BROWSERS-IN-QUERY-frm-vl}
+  ENABLE bt-vol-3 brw-cand 
+      WITH FRAME frm-cl IN WINDOW Win-Client.
+  {&OPEN-BROWSERS-IN-QUERY-frm-cl}
+  DISPLAY f-mensagem 
+      WITH FRAME frm-F IN WINDOW Win-Client.
+  ENABLE f-mensagem bt-vol bt-feed 
+      WITH FRAME frm-F IN WINDOW Win-Client.
+  {&OPEN-BROWSERS-IN-QUERY-frm-F}
+  DISPLAY f-erro fi-host fi-port fi-role fi-sub 
       WITH FRAME frm-rodape IN WINDOW Win-Client.
-  ENABLE f-sub bt-sub fi-host fi-port fi-role fi-sub 
+  ENABLE f-erro bt-erro fi-host fi-port fi-role fi-sub 
       WITH FRAME frm-rodape IN WINDOW Win-Client.
   {&OPEN-BROWSERS-IN-QUERY-frm-rodape}
   VIEW Win-Client.
@@ -1142,9 +1392,9 @@ END PROCEDURE.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE mostraregistro Win-Client 
 PROCEDURE mostraregistro :
 /*------------------------------------------------------------------------------
-                 Purpose:
-                 Notes:
-                ------------------------------------------------------------------------------*/
+                     Purpose:
+                     Notes:
+                    ------------------------------------------------------------------------------*/
     
     Fc-Trata().
     
@@ -1280,7 +1530,7 @@ FUNCTION Fc-Apagar RETURNS LOGICAL
     ASSIGN 
         oClient = ClientBuilder:Build():Client
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-    oUri:Path = "/users/" + user_id.
+    oUri:Path = "/jobs/" + job_id.
 
     oReq = RequestBuilder:Delete(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -1335,7 +1585,7 @@ FUNCTION Fc-At RETURNS LOGICAL
      Purpose:
      Notes:
     ------------------------------------------------------------------------------*/
-    empty temp-table ttcli.
+    empty temp-table ttjob.
     //Fc-Token().
     assign 
         oClient = ClientBuilder:Build():Client       
@@ -1421,10 +1671,83 @@ END FUNCTION.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Atualizar Win-Client 
 FUNCTION Fc-Atualizar RETURNS LOGICAL
     (  ):
-    /*------------------------------------------------------------------------------
-     Purpose:
-     Notes:
-    ------------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
+    empty temp-table ttjob.
+    //Fc-Token().
+    assign 
+        oClient = ClientBuilder:Build():Client       
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/jobs/" + job_id.  
+        
+    /* Cria objeto Json e popula ele */
+    oJsonObj = NEW JsonObject().
+    oJsonObj:Add("title", input frame frm-v f-Titulo).
+    oJsonObj:Add("area", input frame frm-v f-area).
+    oJsonObj:Add("description", input frame frm-v f-dsc).
+    oJsonObj:Add("state", input frame frm-v f-est).
+    oJsonObj:Add("city", input frame frm-v f-Cid).
+    oJsonObj:Add("salary", input frame frm-v f-salario).
+
+    /* Faz a requisicao utilizando POST */
+    oReq  = RequestBuilder:Patch(oUri, oJsonObj)
+            :AddHeader("Authorization", "Bearer " + token)
+            :AcceptJson()
+            :Request.
+    oResp = oClient:Execute(oReq).
+
+    /* valida o tipo de retorno, se for Json processa normalmente */
+    if type-of(oResp:Entity, JsonObject) then 
+    do:
+        oJsonRespObj = cast(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 200 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Atualização de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
+
+        end.
+        IF oResp:StatusCode eq 401 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Não Autorizado): " mensagem VIEW-AS ALERT-BOX ERROR.
+    
+        end.
+
+        IF oResp:StatusCode eq 403 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Proibido): " mensagem VIEW-AS ALERT-BOX ERROR.
+       
+        end.
+        IF oResp:StatusCode eq 404 THEN 
+
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Não Encontrado): " mensagem 
+                VIEW-AS ALERT-BOX ERROR.
+        end.
+        IF oResp:StatusCode eq 422 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message") 
+                codigo   = oJsonRespObj:GetCharacter("code") 
+                detalhes = oJsonRespObj:GetCharacter("detail").
+
+            MESSAGE "Falha no Cadastro (Dados Inválidos): " mensagem SKIP codigo SKIP detalhes 
+                VIEW-AS ALERT-BOX ERROR.
+        end.                     
+    end.
+    CATCH e AS Progress.Lang.Error:
+        MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
+    END CATCH.
     
     
 END FUNCTION.
@@ -1507,11 +1830,66 @@ END FUNCTION.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Cadastrar Win-Client 
 FUNCTION Fc-Cadastrar RETURNS LOGICAL
     (  ):
-    /*------------------------------------------------------------------------------
-     Purpose:
-     Notes:
-    ------------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
+    assign 
+        oClient = ClientBuilder:Build():Client   
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/jobs".  
+        
+    /* Cria objeto Json e popula ele */
+    oJsonObj = NEW JsonObject().
+    oJsonObj:Add("title", input frame frm-v f-Titulo).
+    oJsonObj:Add("area", input frame frm-v f-area).
+    oJsonObj:Add("description", input frame frm-v f-dsc).
+    oJsonObj:Add("state", input frame frm-v f-est).
+    oJsonObj:Add("city", input frame frm-v f-Cid).
+    oJsonObj:Add("salary", input frame frm-v f-salario).
+  
+    /* Faz a requisicao utilizando POST */
+    oReq  = RequestBuilder:Post(oUri, oJsonObj)
+            :AddHeader("Authorization", "Bearer " + token)
+            :AcceptJson()
+            :Request.
+    oResp = oClient:Execute(oReq).
     
+    if type-of(oResp:Entity, JsonObject) then 
+    do:
+        oJsonRespObj = cast(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 201 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Vaga Cadastro efetuado com sucesso: " mensagem 
+                VIEW-AS ALERT-BOX INFO.
+            RETURN TRUE.
+        end.
+        IF oResp:StatusCode eq 409 THEN 
+        do:
+            assign 
+
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha no Cadastro (Conflito): " mensagem 
+                VIEW-AS ALERT-BOX ERROR.
+
+        end.
+        IF oResp:StatusCode eq 422 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message") .
+            MESSAGE "Falha na Atualização (Dados Inválidos): " mensagem SKIP codigo SKIP detalhes 
+                VIEW-AS ALERT-BOX ERROR.
+ 
+        end.
+     
+    end. 
+    CATCH e AS Progress.Lang.Error:
+        MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
+    END CATCH.
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1541,6 +1919,106 @@ END FUNCTION.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Erro Win-Client 
+FUNCTION Fc-Erro RETURNS LOGICAL
+  (  ):
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
+assign 
+        oClient = ClientBuilder:Build():Client       
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/error".  
+        
+    /* Cria objeto Json e popula ele */
+    oJsonObj = NEW JsonObject().
+    oJsonObj:Add("message", input frame frm-rodape f-erro).
+
+    /* Faz a requisicao utilizando POST */
+    oReq  = RequestBuilder:Post(oUri, oJsonObj)
+            :AddHeader("Authorization", "Bearer " + token)
+            :AcceptJson()
+            :Request.
+    oResp = oClient:Execute(oReq).
+
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Feedback Win-Client 
+FUNCTION Fc-Feedback RETURNS LOGICAL
+  (  ):
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
+    assign 
+        oClient = ClientBuilder:Build():Client       
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/jobs/" + job_id.  
+        
+    /* Cria objeto Json e popula ele */
+    oJsonObj = NEW JsonObject().
+    oJsonObj:Add("user_id", id).
+    oJsonObj:Add("message", input frame frm-F f-mensagem).
+
+    /* Faz a requisicao utilizando POST */
+    oReq  = RequestBuilder:Post(oUri, oJsonObj)
+            :AddHeader("Authorization", "Bearer " + token)
+            :AcceptJson()
+            :Request.
+    oResp = oClient:Execute(oReq).
+
+    /* valida o tipo de retorno, se for Json processa normalmente */
+    if type-of(oResp:Entity, JsonObject) then 
+    do:
+        oJsonRespObj = cast(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 200 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Atualização de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
+
+        end.
+        IF oResp:StatusCode eq 401 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Não Autorizado): " mensagem VIEW-AS ALERT-BOX ERROR.
+    
+        end.
+
+        IF oResp:StatusCode eq 403 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Proibido): " mensagem VIEW-AS ALERT-BOX ERROR.
+       
+        end.
+        IF oResp:StatusCode eq 404 THEN 
+
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha na Atualização (Não Encontrado): " mensagem 
+                VIEW-AS ALERT-BOX ERROR.
+        end.                    
+    end.
+    CATCH e AS Progress.Lang.Error:
+        MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
+    END CATCH.
+    
+    
+
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-Inicia Win-Client 
 FUNCTION Fc-Inicia RETURNS LOGICAL
     ( /* parameter-definitions */ ) :
@@ -1551,6 +2029,12 @@ FUNCTION Fc-Inicia RETURNS LOGICAL
     frame frm-c:hidden = true.
     frame frm-l:hidden = true.
     frame frm-e:hidden = true.
+    frame frm-v:hidden = true.
+    frame frm-vl:hidden = true.
+    frame frm-cl:hidden = true.
+    frame frm-f:hidden = true.
+    frame frm-home:hidden = false.
+    
     //frame frm-trab:hidden = true.
 
 END FUNCTION.
@@ -1644,11 +2128,184 @@ FUNCTION Fc-Ler RETURNS LOGICAL
      Purpose:
      Notes:
     ------------------------------------------------------------------------------*/
+    assign 
+        oClient = ClientBuilder:Build():Client   
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/jobs/" + job_id.  
+
+    oReq  = RequestBuilder:Get(oUri, oJsonObj)
+            :AddHeader("Authorization", "Bearer " + token)
+            :AcceptJson()
+            :Request.
+    oResp = oClient:Execute(oReq).
+    
+    if type-of(oResp:Entity, JsonObject) then 
+    do:
+        oJsonRespObj = cast(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespArray.  
+        
+        IF oResp:StatusCode eq 200 THEN 
+        do:
+            CREATE ttjob.
+            assign 
+                ttjob.id        = oJsonRespObj:GetInteger("job_id")
+                ttjob.titulo    = oJsonRespObj:GetCharacter("title")
+                ttjob.area      = oJsonRespObj:GetCharacter("area")
+                ttjob.compania  = oJsonObj:GetCharacter("company")
+                ttjob.descricao = oJsonRespObj:GetCharacter("description")
+                ttjob.estado    = oJsonRespObj:GetCharacter("state")
+                ttjob.cidade    = oJsonRespObj:GetCharacter("city")
+                ttjob.salario   = oJsonRespObj:GetDecimal("salary")
+                ttjob.contato   = ojsonRespObj:GetCharacter("contact").
+     
+            Fc-Trata().
+            assign 
+            
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Cadastro efetuado com sucesso: " mensagem 
+                VIEW-AS ALERT-BOX INFO.
+            RETURN TRUE.
+        end.
+        IF oResp:StatusCode eq 409 THEN 
+        do:
+            assign 
+
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha no Cadastro (Conflito): " mensagem 
+                VIEW-AS ALERT-BOX ERROR.
+
+        end.
+        IF oResp:StatusCode eq 422 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message") 
+                codigo   = oJsonRespObj:GetCharacter("code") 
+                detalhes = oJsonRespObj:GetCharacter("details").
+            MESSAGE "Falha na Atualização (Dados Inválidos): " mensagem SKIP codigo SKIP detalhes 
+                VIEW-AS ALERT-BOX ERROR.
+ 
+        end.
+        ELSE 
+        DO :
+            MESSAGE "Erro desconhecido no Cadastro. Status: " oResp:StatusCode 
+                VIEW-AS ALERT-BOX ERROR.
+
+
+        END.
+    end. 
+    CATCH e AS Progress.Lang.Error:
+        MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
+    END CATCH.
+
+
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION FC-LerVagas Win-Client 
+FUNCTION FC-LerVagas RETURNS LOGICAL
+  (  ):
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
+  assign 
+        oClient = ClientBuilder:Build():Client   
+        oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)). /* URI("metodo", "dominio", "porta") */
+    oUri:Path = "/companies/" + user_id + "/jobs".  
+        
+    /* Cria objeto Json e popula ele */
+    oJsonObj = NEW JsonObject().
+    oJsonObj:Add("title", input frame frm-v f-Titulo).
+    oJsonObj:Add("area", input frame frm-v f-area).
+    oJsonObj:Add("description", input frame frm-v f-dsc).
+    oJsonObj:Add("state", input frame frm-v f-est).
+    oJsonObj:Add("city", input frame frm-v f-Cid).
+    oJsonObj:Add("salary", input frame frm-v f-salario).
+
+  
+    /* Faz a requisicao utilizando POST */
+    oReq  = RequestBuilder:Post(oUri, oJsonObj)
+            :AddHeader("Authorization", "Bearer " + token)
+            :AcceptJson()
+            :Request.
+    oResp = oClient:Execute(oReq).
+    
+    if type-of(oResp:Entity, JsonObject) then 
+    do:
+        oJsonRespObj = CAST(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespObj:GetJsonArray("items").
+        IF oResp:StatusCode eq 200 THEN do:
+        
+        Loop1:
+        DO i = 1 TO oJsonArray:Length:
+            oJsonObj = oJsonArray:GetJsonObject(i).
+                CREATE ttjob.
+                assign 
+                    ttjob.id        = oJsonObj:GetInteger("job_id")
+                    ttjob.titulo    = oJsonObj:GetCharacter("title")
+                    ttjob.area      = oJsonObj:GetCharacter("area")
+                    ttjob.compania  = oJsonObj:GetCharacter("company")
+                    ttjob.descricao = oJsonObj:GetCharacter("description")
+                    ttjob.estado    = oJsonObj:GetCharacter("state")
+                    ttjob.cidade    = oJsonObj:GetCharacter("city")
+                    ttjob.salario   = oJsonObj:GetDecimal("salary")
+                    ttjob.contato   = ojsonObj:GetCharacter("contact").
+            end.       
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Cadastro efetuado com sucesso: " mensagem 
+                VIEW-AS ALERT-BOX INFO.
+            RETURN TRUE.
+        end.
+        IF oResp:StatusCode eq 409 THEN 
+        do:
+            assign 
+
+                mensagem = oJsonRespObj:GetCharacter("message").
+            MESSAGE "Falha no Cadastro (Conflito): " mensagem 
+                VIEW-AS ALERT-BOX ERROR.
+
+        end.
+        IF oResp:StatusCode eq 422 THEN 
+        do:
+            assign 
+                mensagem = oJsonRespObj:GetCharacter("message") 
+                codigo   = oJsonRespObj:GetCharacter("code") 
+                detalhes = oJsonRespObj:GetCharacter("details").
+            MESSAGE "Falha na Atualização (Dados Inválidos): " mensagem SKIP codigo SKIP detalhes 
+                VIEW-AS ALERT-BOX ERROR.
+ 
+        end.
+        ELSE 
+        DO :
+            MESSAGE "Erro desconhecido no Cadastro. Status: " oResp:StatusCode 
+                VIEW-AS ALERT-BOX ERROR.
+
+
+        END.
+    end.    
+    CATCH e AS Progress.Lang.Error:
+        MESSAGE "Erro: " e:GetMessage(1) VIEW-AS ALERT-BOX.
+    END CATCH.
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-ListarCandiadtos Win-Client 
+FUNCTION Fc-ListarCandiadtos RETURNS LOGICAL
+  (  ):
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
    // Fc-Token().
     ASSIGN 
         oClient = ClientBuilder:Build():Client
         oUri    = URI:Parse(metodo + "://" + host + ":" + STRING(porta)).
-    oUri:Path = "/users/" + user_id.
+        oUri:Path = "/companies/" + user_id + "/jobs/" + job_id.
 
     oReq = RequestBuilder:get(oUri)
               :AddHeader("Authorization", "Bearer " + token)
@@ -1659,25 +2316,26 @@ FUNCTION Fc-Ler RETURNS LOGICAL
 
     if type-of(oResp:Entity, JsonObject) then 
     do:
-        oJsonRespObj = cast(oResp:Entity, JsonObject).
-        oJsonArray = oJsonRespArray.  
+       oJsonRespObj = CAST(oResp:Entity, JsonObject).
+        oJsonArray = oJsonRespObj:GetJsonArray("items").
+        IF oResp:StatusCode eq 200 THEN do:
         
-        IF oResp:StatusCode eq 200 THEN 
-
-        do:
-
-            CREATE ttcli.
-
-            assign 
-
-                ttcli.name       = oJsonRespObj:GetCharacter("name")
-                ttcli.username   = oJsonRespObj:GetCharacter("username")
-                ttcli.email      = oJsonRespObj:GetCharacter("email")
-                ttcli.password   = oJsonRespObj:GetCharacter("password")
-                ttcli.phone      = oJsonRespObj:GetCharacter("phone")
-                ttcli.experience = oJsonRespObj:GetCharacter("experience")
-                ttcli.education  = oJsonRespObj:GetCharacter("education").
+        Loop1:
+        DO i = 1 TO oJsonArray:Length:
+            oJsonObj = oJsonArray:GetJsonObject(i).
+                CREATE ttcli.
+    
+                assign 
+                    ttcli.id         = ojsonRespObj:GetInteger("user_id")
+                    ttcli.name       = oJsonRespObj:GetCharacter("name")
+                    ttcli.email      = oJsonRespObj:GetCharacter("email")
+                    ttcli.phone      = oJsonRespObj:GetCharacter("phone")
+                    ttcli.education  = oJsonRespObj:GetCharacter("education")
+                    ttcli.experience = oJsonRespObj:GetCharacter("experience")
+                    .
+            end.
             MESSAGE "Leitura de dados efetuada com sucesso." VIEW-AS ALERT-BOX INFO.
+            Fc-Trata().
         end.
         IF oResp:StatusCode eq 401 THEN 
         do:          
@@ -1856,44 +2514,12 @@ FUNCTION Fc-Token RETURNS LOGICAL
     /* decodifica */
     mDecoded = BASE64-DECODE(cPayload).
     COPY-LOB FROM mDecoded TO lcDecoded.
-    user_id = substring(lcDecoded,8,1) .
+    user_id = substring(lcDecoded,9,1) .
     id = lcDecoded .
     display user_id @ fi-sub 
         with frame frm-rodape.
     MESSAGE id
         VIEW-AS ALERT-BOX.
-/*DEFINE VARIABLE payload         AS CHARACTER NO-UNDO.
-DEFINE VARIABLE oJsonPayload    AS JsonObject NO-UNDO.
-DEFINE VARIABLE myParser         as ObjectModelParser no-undo.   
-DEFINE VARIABLE iSep1           AS INTEGER   NO-UNDO.
-DEFINE VARIABLE iSep2           AS INTEGER   NO-UNDO.
-DEFINE VARIABLE cPayload        AS CHARACTER NO-UNDO.
-DEFINE VARIABLE mDecoded        AS MEMPTR    NO-UNDO.
-DEFINE VARIABLE lcDecoded       AS LONGCHAR NO-UNDO.
-   
-myParser = NEW ObjectModelParser().
-iSep1 = INDEX(token, ".").
-iSep2 = INDEX(token, ".", iSep1 + 1).
-cPayload = SUBSTRING(token, iSep1 + 1, iSep2 - iSep1 - 1).
-    
-/* base64url -> base64 */
-cPayload = REPLACE(REPLACE(cPayload, "-", "+"), "_", "/").
-DO WHILE (LENGTH(cPayload) MOD 4) <> 0:
-    cPayload = cPayload + "=".
-END.
-    
-/* decodifica */
-mDecoded = BASE64-DECODE(cPayload).
-COPY-LOB FROM mDecoded TO lcDecoded.
-    
-/* Converte o payload decodificado para JsonObject e extrai o 'sub' */
-oJsonPayload = CAST(myParser:Parse(lcDecoded),JsonObject).
-ASSIGN user_id = oJsonPayload:GetInteger("sub"). /* ARMAZENA O ID */
-    
-/* Remove a mensagem de debug desnecessária */
- MESSAGE user_id VIEW-AS ALERT-BOX. 
-
-RETURN TRUE.*/
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1908,11 +2534,45 @@ FUNCTION Fc-Trata RETURNS LOGICAL
     ------------------------------------------------------------------------------*/
 
     /** Abaixo regras de negocio e tratamentos necessarios **/
-    for each ttcli no-lock:
-        disp ttcli.name @ {&List-6}
-            with frame frm-u.    
+    for each ttcom no-lock:
+       disp  ttcom.name @ f-nome
+            ttcom.business @ f-nome
+            ttcom.username @ f-Unome
+            ttcom.password @ f-Senha
+            ttcom.street @ f-rua
+            ttcom.number @ f-num
+            ttcom.city @ f-cidade
+            ttcom.state @ f-est
+            ttcom.phone @ f-telefone
+            ttcom.email @ f-email    
+       with frame frm-e.   
     end.
 
+
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION Fc-VV Win-Client 
+FUNCTION Fc-VV RETURNS LOGICAL
+  (  ):
+/*------------------------------------------------------------------------------
+ Purpose:
+ Notes:
+------------------------------------------------------------------------------*/
+       for each ttjob no-lock:
+        disp            
+            ttjob.titulo    @ f-Titulo
+            ttjob.area      @ f-area  
+            ttjob.compania  @ f-comp  
+            ttjob.descricao @ f-dsc
+            ttjob.estado    @ f-est
+            ttjob.cidade    @ f-Cid
+            ttjob.salario   @ f-salario
+            ttjob.contato   @ f-cont
+            with frame frm-v.    
+    end.
 
 END FUNCTION.
 
